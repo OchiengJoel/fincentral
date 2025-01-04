@@ -1,1 +1,15 @@
-<p>companyaddedit works!</p>
+<div class="company-form">
+    <form [formGroup]="companyForm" (ngSubmit)="saveCompany()">
+      <mat-form-field>
+        <mat-label>Company Name</mat-label>
+        <input matInput formControlName="name" />
+        <mat-error *ngIf="companyForm.get('name')?.hasError('required')">
+          Company name is required
+        </mat-error>
+      </mat-form-field>
+      <button mat-raised-button type="submit" [disabled]="companyForm.invalid">
+        {{ isEditMode ? 'Update' : 'Create' }} Company
+      </button>
+    </form>
+  </div>
+  

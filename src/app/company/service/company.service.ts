@@ -1,87 +1,53 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { Company } from '../model/company';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from 'src/app/auth/service/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CompanyService {
 
-  private baseUrl: string;
-  private readonly LOCAL_STORAGE_KEY = 'selectedCompanyId';
-  private selectedCompanyId: BehaviorSubject<number | null>;
+   private apiUrl = `http://localhost:8080/api/v2/companies`;
 
   constructor(
-    private http: HttpClient
-  ) {
+    private http: HttpClient,
+    private snackBar: MatSnackBar,
+    private authService: AuthService
+  ) {}
 
-    this.baseUrl= 'http://localhost:8080/api/v2/companies';
-    const storedCompanyId = localStorage.getItem(this.LOCAL_STORAGE_KEY);
-    this.selectedCompanyId = new BehaviorSubject<number | null>(storedCompanyId ? +storedCompanyId : null);  
-   }
-
-  //  getCompanies(): Observable<Company[]> {
-  //   return this.http.get<Company[]>(`${this.baseUrl}/list`).pipe(
-  //     catchError(this.handleError)
-  //   );
-  // }
-
-  getCompanies(): Observable<Company[]> {
-    return this.http.get<Company[]>(`${this.baseUrl}/list`).pipe(
-      tap(data => console.log('Companies fetched from service:', data)), // Add this line
-      catchError(this.handleError)
+  // Fetch all companies
+  getCompanies(page: number, size: number): Observable<any> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+    return this.http.get<any>(`${this.apiUrl}/list?page=${page}&size=${size}`, { headers }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to load companies', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        throw error;
+      })
     );
   }
 
-  getCompanyById(id: number): Observable<Company> {
-    return this.http.get<Company>(`${this.baseUrl}/${id}`).pipe(
-      catchError(this.handleError)
+  // Create a new company
+  createCompany(company: Company): Observable<Company> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+    return this.http.post<Company>(`${this.apiUrl}/create`, company, { headers }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to create company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        throw error;
+      })
     );
   }
 
-  createCompany(company: Company): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/save`, company).pipe(
-      catchError(this.handleError)
+  // Delete a company
+  deleteCompany(companyId: number): Observable<void> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+    return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to delete company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        throw error;
+      })
     );
-  }
-
-
-  //  updateCompany(id: number, company: Company ):Observable<Company>{
-  //   return this.http.put<Company>(`${this.baseUrl}/update/${id}`, company)
-  //  }
-
-  updateCompany(company: Company): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/update/${company.id}`, company).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  deleteCompany(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/delete/${id}`).pipe(
-      catchError(this.handleError)
-    );
-  }
-
-  getSelectedCompanyId(): Observable<number | null> {
-    return this.selectedCompanyId.asObservable();
-  }
-
-  switchCompany(companyId: number): void {
-    localStorage.setItem(this.LOCAL_STORAGE_KEY, companyId.toString());
-    this.selectedCompanyId.next(companyId);
-  }
-
-  private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Unknown error!';
-    if (error.error instanceof ErrorEvent) {
-      // Client-side errors
-      errorMessage = `Client-side Error: ${error.error.message}`;
-    } else {
-      // Server-side errors
-      errorMessage = `Server-side Error: Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    console.error(errorMessage); // Log error message to console for debugging
-    return throwError(errorMessage);
   }
 }

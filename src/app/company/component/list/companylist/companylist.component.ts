@@ -15,79 +15,37 @@ import { CompanyaddeditComponent } from '../../addedit/companyaddedit/companyadd
 })
 export class CompanylistComponent implements OnInit {
 
-  title: string;
-  displayedColumns: string[] = ["name"];
-  //displayedColumns: string[] = ["companyName", "email", "contact", "country", "city", "action"];
-  dataSource: MatTableDataSource<Company> = new MatTableDataSource<Company>([]);
-  selectedCompanyId: number | null = null;
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  displayedColumns: string[] = ['id', 'name', 'actions'];
+  dataSource!: MatTableDataSource<any>;  // Non-null assertion here
+  pageSize = 10;
 
-  constructor(
-    private companyService: CompanyService,
-    private dialog: MatDialog,
-    private snackbar: MatSnackBar
-  ) { 
-    this.title = "Company List";
-    this.companyService.getSelectedCompanyId().subscribe(id => {
-      this.selectedCompanyId = id;
-      // Load company-specific data based on the selected company ID
-    });
-  }
+  constructor(private companyService: CompanyService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
-    this.fetchCompanies();
+    this.loadCompanies(0, this.pageSize);
   }
 
-  openFormDialog(company?: Company): void {
-    const dialogRef = this.dialog.open(CompanyaddeditComponent, {
-      width: '600px',
-      data: company
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.fetchCompanies();
+  loadCompanies(page: number, size: number): void {
+    this.companyService.getCompanies(page, size).subscribe(
+      (data) => {
+        this.dataSource = new MatTableDataSource(data.content);  // Assign to dataSource here
+      },
+      (error) => {
+        this.snackBar.open('Failed to load companies', 'Close', { duration: 5000 });
       }
-    });
-  }  
-
-  fetchCompanies(): void {
-    this.companyService.getCompanies().subscribe(companies => {
-      this.dataSource.data = companies;
-      this.dataSource.paginator = this.paginator;
-      this.dataSource.sort = this.sort;
-    });
+    );
   }
-
-  applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
-  }  
 
   deleteCompany(id: number): void {
-    let confirm = window.confirm("Are you sure you want to delete selected item?");
-    if (confirm) {
-      this.companyService.deleteCompany(id).subscribe({
-        next: (res) => {
-          alert("Company Deleted");
-          this.fetchCompanies();
-        },
-        error(err) {
-          console.log(err);
-        },
-      });
-    }
+    this.companyService.deleteCompany(id).subscribe(
+      () => {
+        this.snackBar.open('Company deleted successfully', 'Close', { duration: 5000 });
+        this.loadCompanies(0, this.pageSize); // Reload the list after deletion
+      },
+      () => {
+        this.snackBar.open('Failed to delete company', 'Close', { duration: 5000 });
+      }
+    );
   }
-
-
-  switchCompany(companyId: number): void {
-    this.companyService.switchCompany(companyId);
-    // Logic to refresh data based on the selected company can be added here
-  }
-
 }
+
