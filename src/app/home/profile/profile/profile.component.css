@@ -1,0 +1,90 @@
+.dashboard-card {
+    max-width: 90%;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .card-header {
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+  }
+  
+  .user-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  
+  .user-email {
+    font-size: 14px;
+    color: #7f8c8d;
+  }
+  
+  .card-content {
+    margin-top: 20px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #34495e;
+  }
+  
+  .user-info {
+    font-size: 16px;
+  }
+  
+  .mat-list-item {
+    color: #2c3e50;
+    padding: 8px 0;
+  }
+  
+  .mat-table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .company-table th, .company-table td {
+    padding: 12px 15px;
+    text-align: left;
+  }
+  
+  .mat-header-row {
+    background-color: #ecf0f1;
+  }
+  
+  .mat-cell, .mat-header-cell {
+    color: #34495e;
+  }
+  
+  .mat-header-cell {
+    font-weight: bold;
+    background-color: #ecf0f1;
+  }
+  
+  .mat-row:hover {
+    background-color: #f1f1f1;
+  }
+  
+  button[mat-button] {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    background-color: #2980b9;
+    color: white;
+    border-radius: 4px;
+    border: none;
+  }
+  
+  button[mat-button]:hover {
+    background-color: #3498db;
+  }
+  

@@ -1,0 +1,61 @@
+<div style="margin: 2%;" class="double-underline">
+    <mat-card-title>
+      <h1>{{title}}</h1>
+    </mat-card-title>
+  </div>
+  
+  <mat-card>
+    <mat-card-header>
+      <mat-form-field>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Filter">
+      </mat-form-field>
+  
+      <span class="spacer"></span>
+      <button mat-raised-button color="primary" (click)="openFormDialog()">New Company (+)</button>
+    </mat-card-header>
+  
+    <mat-card-content>
+      <table matSort mat-table [dataSource]="dataSource" class="mat-elevation-z8" multiTemplateDataRows>
+  
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Company Name</th>
+          <td mat-cell *matCellDef="let element">{{element.name}}</td>
+        </ng-container>
+  
+        <!-- <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+          <td mat-cell *matCellDef="let element">{{ element.address?.email }}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="contact">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Contact</th>
+          <td mat-cell *matCellDef="let element">{{element.address?.contact}}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="country">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
+          <td mat-cell *matCellDef="let element">{{element.address?.country}}</td>
+        </ng-container>
+  
+        <ng-container matColumnDef="city">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>City</th>
+          <td mat-cell *matCellDef="let element">{{element.address?.city}}</td>
+        </ng-container> -->
+  
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let element">
+            <button mat-button (click)="openFormDialog(element)">Edit</button>
+            <button mat-button color="warn" (click)="deleteCompany(element.id)">Delete</button>
+          </td>
+        </ng-container>
+  
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  
+    <mat-card-footer>
+      <mat-paginator [pageSizeOptions]="[10, 30, 50, 100, 200]" showFirstLastButtons></mat-paginator>
+    </mat-card-footer>
+  </mat-card>

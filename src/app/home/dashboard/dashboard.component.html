@@ -1,0 +1,271 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <button (click)="toggleDrawer()" mat-icon-button>
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <h1>FinCentral </h1>
+
+    <span class="fill-remaining-space"></span>
+
+    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item routerLink="/dashboard/profile" >Profile</button>
+      <button mat-menu-item>Settings</button>
+      <button mat-menu-item (click)="logout()">Logout</button>
+
+      <!-- <mat-card-actions>
+        <button mat-button color="warn" (click)="logout()">Logout</button>
+      </mat-card-actions> -->
+    </mat-menu>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-drawer-container autosize>
+  <mat-drawer #drawer opened="true" mode="side" class="sidebar">
+  <!-- <mat-drawer #drawer opened="true" mode="side" class="sidebar" (mouseover)="drawer.open()"> -->
+    <mat-accordion>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>list</mat-icon>
+            CMS
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <!-- <mat-list-item>
+            <button routerLink="accounts" mat-button>
+              <mat-icon>shopping_cart</mat-icon>Branches
+            </button>
+          </mat-list-item> -->
+
+          <mat-list-item routerLink="branches">
+            <mat-icon>shopping_cart</mat-icon> Branches
+          </mat-list-item>
+
+          <mat-list-item routerLink="parcelitems">
+            <mat-icon>analytics</mat-icon> Items
+          </mat-list-item>
+
+          <mat-list-item routerLink="weightbands">
+            <mat-icon>analytics</mat-icon> Weight Bands
+          </mat-list-item>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>category</mat-icon> Parcels
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-nav-list>
+              <mat-list-item routerLink="parcels">Recorded</mat-list-item>
+              <mat-list-item routerLink="itemcatalogue">In-Transit</mat-list-item>
+              <mat-list-item routerLink="">Ready For Pickup</mat-list-item>
+              <mat-list-item routerLink="">OverDue</mat-list-item>
+            </mat-nav-list>
+          </mat-expansion-panel>
+
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>list</mat-icon>
+            PMS
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+
+          <mat-list-item routerLink="projects">
+            <mat-icon>shopping_cart</mat-icon> Project(s)
+          </mat-list-item>
+
+          <mat-list-item routerLink="tasks">
+            <mat-icon>analytics</mat-icon> Project Tasks Management
+          </mat-list-item>
+
+          <mat-list-item routerLink="weightbands">
+            <mat-icon>analytics</mat-icon> Weight Bands
+          </mat-list-item>
+
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>category</mat-icon>
+            Item
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="itemcategory">Item Category</mat-list-item>
+          <mat-list-item routerLink="itemcatalogue">Item Catalogue</mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>list</mat-icon>
+            Item Catalog
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item>Menu Item 1</mat-list-item>
+          <mat-list-item>Menu Item 2</mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <mat-nav-list>
+        <mat-list-item>
+          <button mat-button>
+            <mat-icon>shopping_cart</mat-icon>Orders
+          </button>
+        </mat-list-item>
+        <mat-list-item>
+          <button mat-button>
+            <mat-icon>analytics</mat-icon>Analytics
+          </button>
+        </mat-list-item>
+      </mat-nav-list>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>list</mat-icon>
+            Financials
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item>
+            <button routerLink="accounts" mat-button>
+              <mat-icon>shopping_cart</mat-icon>Chart Of Accounts
+            </button>
+          </mat-list-item>
+          <mat-list-item>
+            <button mat-button>
+              <mat-icon>analytics</mat-icon>Journals
+            </button>
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>menu</mat-icon>
+            Main Menu 1
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item>
+            <button mat-button (click)="toggleSubMenu('submenu1')">Submenu 1</button>
+          </mat-list-item>
+          <mat-expansion-panel *ngIf="isSubMenuOpen('submenu1')">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon>menu</mat-icon>
+                Submenu 1
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-nav-list>
+              <!-- Submenu items for Submenu 1 -->
+              <mat-list-item>
+                <button mat-button>Submenu Item 1</button>
+              </mat-list-item>
+              <mat-list-item>
+                <button mat-button>Submenu Item 2</button>
+              </mat-list-item>
+            </mat-nav-list>
+          </mat-expansion-panel>
+        </mat-nav-list>
+      </mat-expansion-panel>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon>menu</mat-icon>
+            Company Setup
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <mat-nav-list>
+          <mat-list-item routerLink="/dashboard/companies">Companies</mat-list-item>
+          <mat-divider></mat-divider>
+          
+          <!-- Select Company Dropdown -->
+          <mat-form-field>
+            <mat-label><b>Select Company</b></mat-label>
+            <mat-select [(value)]="selectedCompanyId" (selectionChange)="switchCompany($event.value)">
+              <mat-option *ngFor="let company of companies" [value]="company.id">{{ company.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-list-item routerLink="notifications">
+            <mat-icon>analytics</mat-icon> Email Configs
+          </mat-list-item>
+        </mat-nav-list>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-drawer>
+  
+  <mat-drawer-content>
+    <div style="height: 100vh; text-align: center;">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <mat-card class="user-profile-card">
+  <mat-card-header>
+    <mat-card-title class="title">Your Profile</mat-card-title>
+    <mat-card-subtitle class="subtitle" *ngIf="!loading">{{ userDetails?.firstName }}</mat-card-subtitle>
+    <mat-card-subtitle class="subtitle" *ngIf="loading">Loading...</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content *ngIf="!loading; else loadingSpinner">
+    <div class="profile-info">
+      <mat-list>
+        <mat-list-item><strong>Username:</strong> {{ userDetails?.username }}</mat-list-item>
+        <mat-list-item><strong>Email:</strong> {{ userDetails?.email }}</mat-list-item>
+        <mat-list-item><strong>Role:</strong> {{ userDetails?.roles?.join(', ') }}</mat-list-item>
+        <mat-list-item><strong>Companies:</strong></mat-list-item>
+        <mat-list>
+          <mat-list-item *ngFor="let company of userDetails?.companies">
+            {{ company.name }} ({{ company.status ? 'Active' : 'Inactive' }})
+          </mat-list-item>
+        </mat-list>
+      </mat-list>
+    </div>
+
+    <div class="update-btn">
+      <button mat-raised-button color="warn" (click)="logout()">Logout</button>
+    </div>
+  </mat-card-content>
+
+  <ng-template #loadingSpinner>
+    <mat-spinner diameter="50"></mat-spinner>
+  </ng-template>
+</mat-card> -->

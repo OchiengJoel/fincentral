@@ -1,0 +1,30 @@
+<mat-card class="dashboard-card">
+    <mat-card-header class="card-header">
+      <mat-card-title class="user-name">Welcome, {{ userData.firstName }} {{ userData.lastName }}!</mat-card-title>
+      <mat-card-subtitle class="user-email">{{ userData.email }}</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content class="card-content">
+      <section class="user-details">
+        <h3 class="section-title">User Details</h3>
+        <mat-list class="user-info">
+          <mat-list-item><strong>Email: </strong>{{ userData.email }}</mat-list-item>
+          <mat-list-item><strong>Roles: </strong><span *ngFor="let role of userData.roles">{{ role }}</span></mat-list-item>
+          <mat-list-item><strong>Companies: </strong><span *ngFor="let company of userData.companies">{{ company }}</span></mat-list-item>
+        </mat-list>
+      </section>
+
+      <section class="actionable-data">
+        <h3 class="section-title">Actionable Data</h3>
+        <mat-table [dataSource]="userData.companies" class="company-table mat-elevation-z8">
+          <ng-container matColumnDef="company">
+            <mat-header-cell *matHeaderCellDef>Company</mat-header-cell>
+            <mat-cell *matCellDef="let company">{{ company }}</mat-cell>
+          </ng-container>
+
+          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+        </mat-table>
+      </section>
+    </mat-card-content>
+</mat-card>
