@@ -18,11 +18,13 @@ export class DashboardComponent implements OnInit {
   //companies!: Company[];  
   companies: Company[] = [];
   selectedCompanyId: number | null = null;
+  selectedCompanyName: string = '';  // Variable to hold the selected company's name
   userData: any;
   displayedColumns: string[] = ['company']; // Define the columns to display in the mat-table
   @ViewChild('drawer') drawer!: MatSidenav;
   errorMessage: string = ''; // Ensure 'errorMessage' is declared
   private openSubMenu: string = '';
+  isDarkMode: boolean = false;
 
   constructor(
     private authService: AuthService, 
@@ -38,11 +40,27 @@ export class DashboardComponent implements OnInit {
 
     this.userData = this.authService.getUserData(); // Get user data from localStorage
 
-     // Fetch the companies the user can access
-     this.companies = this.userData.companies.map((companyName: string, index: number) => ({
+    // Fetch the companies the user can access
+    this.companies = this.userData.companies.map((companyName: string, index: number) => ({
       id: index + 1, // Example mapping for company ID
       name: companyName,
     }));
+
+    // Subscribe to selected company ID
+    this.subscribeToSelectedCompany();
+
+
+    // Check localStorage for the user's theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.isDarkMode = true;
+      document.body.classList.add('dark-mode');
+      document.body.classList.remove('light-mode');
+    } else {
+      this.isDarkMode = false;
+      document.body.classList.add('light-mode');
+      document.body.classList.remove('dark-mode');
+    }
   }
 
   toggleDrawer(){
@@ -57,17 +75,31 @@ export class DashboardComponent implements OnInit {
     this.openSubMenu = this.openSubMenu === subMenu ? '' : subMenu;
   }
 
+  toggleTheme(): void {
+    this.isDarkMode = !this.isDarkMode;
+
+    // Add or remove the dark mode class on the body
+    if (this.isDarkMode) {
+      document.body.classList.remove('light-mode');
+      document.body.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    }  
+  }
+
   selectCompany(companyId: number): void {
     this.companyService.switchCompany(companyId);
   }
 
-  // switchCompany(companyId: number): void {
-  //   this.companyService.switchCompany(companyId);
-  //   // Logic to refresh data based on the selected company can be added here
-  // }
-
   switchCompany(companyId: number): void {
     this.selectedCompanyId = companyId;
+    const selectedCompany = this.companies.find(company => company.id === companyId);
+    if (selectedCompany) {
+      this.selectedCompanyName = selectedCompany.name;  // Set the selected company's name
+    }
     this.companyService.switchCompany(companyId);
 
     // Load data specific to the selected company
@@ -79,7 +111,7 @@ export class DashboardComponent implements OnInit {
       (companyId) => {
         this.selectedCompanyId = companyId;
         if (companyId !== null) {
-          this.loadCompanySpecificData(companyId); // Ensure companyId is not null
+          this.loadCompanySpecificData(companyId);
         }
       },
       (error) => {
@@ -90,17 +122,10 @@ export class DashboardComponent implements OnInit {
   }
 
   loadCompanySpecificData(companyId: number): void {
-    // Example: Fetch additional data based on the selected company ID
-    // Replace with your actual implementation
     console.log(`Fetching additional data for company ID: ${companyId}`);
-    // Implement your data loading logic here
-    // For example:
-    // this.companyService.getBranches(companyId).subscribe(...);
-    // this.companyService.getWeightBands(companyId).subscribe(...);
-    // this.companyService.getParcels(companyId).subscribe(...);
-  } 
+    // Add the actual logic to load data specific to the selected company
+  }
 
-  // Logout the user and navigate to the login page
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']); // Redirect to login page

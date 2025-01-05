@@ -4,28 +4,35 @@
       <mat-icon>menu</mat-icon>
     </button>
 
-    <h1>FinCentral </h1>
+    <h1>FinCentral</h1>
 
     <span class="fill-remaining-space"></span>
+
+    <!-- Display the selected company name if one is selected -->
+    <span *ngIf="selectedCompanyName" class="selected-company">
+      | Company: {{ selectedCompanyName }}
+    </span>
 
     <button mat-icon-button [matMenuTriggerFor]="userMenu">
       <mat-icon>account_circle</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
-      <button mat-menu-item routerLink="/dashboard/profile" >Profile</button>
+      <button mat-menu-item routerLink="/dashboard/profile">Profile</button>
       <button mat-menu-item>Settings</button>
       <button mat-menu-item (click)="logout()">Logout</button>
-
-      <!-- <mat-card-actions>
-        <button mat-button color="warn" (click)="logout()">Logout</button>
-      </mat-card-actions> -->
     </mat-menu>
+
+    <button mat-icon-button (click)="toggleTheme()">
+      <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+    
   </mat-toolbar-row>
 </mat-toolbar>
 
+
 <mat-drawer-container autosize>
   <mat-drawer #drawer opened="true" mode="side" class="sidebar">
-  <!-- <mat-drawer #drawer opened="true" mode="side" class="sidebar" (mouseover)="drawer.open()"> -->
+    <!-- <mat-drawer #drawer opened="true" mode="side" class="sidebar" (mouseover)="drawer.open()"> -->
     <mat-accordion>
 
       <mat-expansion-panel>
@@ -195,7 +202,7 @@
         <mat-nav-list>
           <mat-list-item routerLink="/dashboard/companies">Companies</mat-list-item>
           <mat-divider></mat-divider>
-          
+
           <!-- Select Company Dropdown -->
           <mat-form-field>
             <mat-label><b>Select Company</b></mat-label>
@@ -211,7 +218,7 @@
       </mat-expansion-panel>
     </mat-accordion>
   </mat-drawer>
-  
+
   <mat-drawer-content>
     <div style="height: 100vh; text-align: center;">
       <router-outlet></router-outlet>

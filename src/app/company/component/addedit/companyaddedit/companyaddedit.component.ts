@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -25,15 +26,20 @@ export class CompanyaddeditComponent implements OnInit {
 
   ngOnInit(): void {
     this.companyForm = this.fb.group({
-      name: ['', [Validators.required]]
+      name: ['', Validators.required]
     });
-  
-    this.companyId = this.route.snapshot.params['id'];
-    if (this.companyId) {
-      this.isEditMode = true;
-      // Fetch company data and populate form for edit
-      this.loadCompany();
-    }
+
+    // Check if we are in edit mode or add mode
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.companyId = +id;
+        this.loadCompanyDetails();
+      } else {
+        this.isEditMode = false;
+      }
+    });
   }
   
   loadCompany(): void {
@@ -41,21 +47,44 @@ export class CompanyaddeditComponent implements OnInit {
     // Ensure you handle the case where company is null or undefined
   }
 
+  loadCompanyDetails(): void {
+    if (this.companyId) {
+      this.companyService.getCompanyById(this.companyId).subscribe(
+        (company: Company) => {
+          this.companyForm.patchValue(company);
+        },
+        (error) => {
+          this.snackBar.open('Failed to load company details', 'Close', { duration: 5000 });
+        }
+      );
+    }
+  }
+
   saveCompany(): void {
     if (this.companyForm.invalid) {
       return;
     }
   
-    const company: Company = this.companyForm.value;
-    if (this.isEditMode) {
-      // Call update service
+    const companyData: Company = this.companyForm.value;
+  
+    if (this.isEditMode && this.companyId) {
+      companyData.id = this.companyId;  // Ensure ID is added for update
+      this.companyService.updateCompany(companyData).subscribe(
+        () => {
+          this.snackBar.open('Company updated successfully', 'Close', { duration: 5000 });
+          this.router.navigate(['/companies']);
+        },
+        (error: HttpErrorResponse) => { // Explicitly typing the error
+          this.snackBar.open('Failed to update company', 'Close', { duration: 5000 });
+        }
+      );
     } else {
-      this.companyService.createCompany(company).subscribe(
+      this.companyService.createCompany(companyData).subscribe(
         () => {
           this.snackBar.open('Company created successfully', 'Close', { duration: 5000 });
           this.router.navigate(['/companies']);
         },
-        () => {
+        (error: HttpErrorResponse) => { // Explicitly typing the error
           this.snackBar.open('Failed to create company', 'Close', { duration: 5000 });
         }
       );

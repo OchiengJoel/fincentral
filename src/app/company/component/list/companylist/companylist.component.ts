@@ -7,6 +7,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Company } from 'src/app/company/model/company';
 import { CompanyService } from 'src/app/company/service/company.service';
 import { CompanyaddeditComponent } from '../../addedit/companyaddedit/companyaddedit.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-companylist',
@@ -18,11 +19,49 @@ export class CompanylistComponent implements OnInit {
   displayedColumns: string[] = ['id', 'name', 'actions'];
   dataSource!: MatTableDataSource<any>;  // Non-null assertion here
   pageSize = 10;
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private companyService: CompanyService, private snackBar: MatSnackBar) {}
+  constructor(
+    private companyService: CompanyService, 
+    private snackBar: MatSnackBar,
+    private router: Router
+  
+  ) { }
 
   ngOnInit(): void {
     this.loadCompanies(0, this.pageSize);
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+  // openFormDialog(company?: Company): void {
+  //   const dialogRef = this.dialog.open(CompanyaddeditComponent, {
+  //     width: '600px',
+  //     data: company
+  //   });
+
+  //   dialogRef.afterClosed().subscribe(result => {
+  //     if (result) {
+  //       this.loadCompanies;
+  //     }
+  //   });
+  // }
+
+  openFormDialog(company?: Company): void {
+    // Use the Router to navigate to the add/edit page
+    if (company) {
+      this.router.navigate(['/companies/edit', company.id]);
+    } else {
+      this.router.navigate(['/companies/add']);
+    }
   }
 
   loadCompanies(page: number, size: number): void {

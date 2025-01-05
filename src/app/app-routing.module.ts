@@ -22,6 +22,7 @@ const routes: Routes = [
       {
         path: 'companies', component: CompanylistComponent
       },
+      
 
       {
         path: 'profile', component: ProfileComponent

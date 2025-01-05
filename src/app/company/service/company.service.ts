@@ -10,7 +10,9 @@ import { AuthService } from 'src/app/auth/service/auth.service';
 })
 export class CompanyService {
 
-   private apiUrl = `http://localhost:8080/api/v2/companies`;
+  private apiUrl = `http://localhost:8080/api/v2/companies`;
+  private selectedCompanySubject = new BehaviorSubject<number | null>(null);
+  public selectedCompanyId$ = this.selectedCompanySubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -40,6 +42,28 @@ export class CompanyService {
     );
   }
 
+  // Update a company
+  updateCompany(company: Company): Observable<Company> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+    return this.http.put<Company>(`${this.apiUrl}/update/${company.id}`, company, { headers }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to update company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        throw error;
+      })
+    );
+  }
+
+  // Fetch a company by ID
+  getCompanyById(id: number): Observable<Company> {
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+    return this.http.get<Company>(`${this.apiUrl}/${id}`, { headers }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to fetch company details', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        throw error;
+      })
+    );
+  }
+
   // Delete a company
   deleteCompany(companyId: number): Observable<void> {
     const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
@@ -49,5 +73,20 @@ export class CompanyService {
         throw error;
       })
     );
+  }
+
+  // Switch the selected company
+  switchCompany(companyId: number): void {
+    this.selectedCompanySubject.next(companyId);
+    localStorage.setItem('selectedCompanyId', companyId.toString());
+  }
+
+  // Get the selected company ID
+  getSelectedCompanyId(): Observable<number | null> {
+    const storedCompanyId = localStorage.getItem('selectedCompanyId');
+    if (storedCompanyId) {
+      this.selectedCompanySubject.next(Number(storedCompanyId));
+    }
+    return this.selectedCompanyId$;
   }
 }
