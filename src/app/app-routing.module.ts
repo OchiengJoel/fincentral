@@ -5,6 +5,8 @@ import { DashboardComponent } from './home/dashboard/dashboard.component';
 import { AuthGuard } from './auth/auth.guard';
 import { CompanylistComponent } from './company/component/list/companylist/companylist.component';
 import { ProfileComponent } from './home/profile/profile/profile.component';
+import { CompanyaddeditComponent } from './company/component/addedit/companyaddedit/companyaddedit.component';
+import { InventoryListComponent } from './inventory/component/list/inventory-list/inventory-list.component';
 
 const routes: Routes = [
 
@@ -22,10 +24,21 @@ const routes: Routes = [
       {
         path: 'companies', component: CompanylistComponent
       },
+
+      {
+        path: 'companies/add', component: CompanyaddeditComponent // Add this route
+      },
       
+      {
+        path: 'companies/edit/:id', component: CompanyaddeditComponent // Make sure edit route has a parameter for company ID
+      },
 
       {
         path: 'profile', component: ProfileComponent
+      },
+
+      {
+        path: 'inventory-item', component: InventoryListComponent
       }
       
     ]

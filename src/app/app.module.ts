@@ -34,6 +34,8 @@ import { DashboardComponent } from './home/dashboard/dashboard.component';
 import { CompanylistComponent } from './company/component/list/companylist/companylist.component';
 import { CompanyaddeditComponent } from './company/component/addedit/companyaddedit/companyaddedit.component';
 import { ProfileComponent } from './home/profile/profile/profile.component';
+import { InventoryListComponent } from './inventory/component/list/inventory-list/inventory-list.component';
+import { InventoryFormComponent } from './inventory/component/addedit/inventory-form/inventory-form.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,9 @@ import { ProfileComponent } from './home/profile/profile/profile.component';
     DashboardComponent,
     CompanylistComponent,
     CompanyaddeditComponent,
-    ProfileComponent
+    ProfileComponent,
+    InventoryListComponent,
+    InventoryFormComponent
   ],
   imports: [
     BrowserModule,

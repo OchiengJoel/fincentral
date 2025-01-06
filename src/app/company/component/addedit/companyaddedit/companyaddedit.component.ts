@@ -68,13 +68,13 @@ export class CompanyaddeditComponent implements OnInit {
     const companyData: Company = this.companyForm.value;
   
     if (this.isEditMode && this.companyId) {
-      companyData.id = this.companyId;  // Ensure ID is added for update
+      companyData.id = this.companyId;  // Make sure the ID is added for update
       this.companyService.updateCompany(companyData).subscribe(
         () => {
           this.snackBar.open('Company updated successfully', 'Close', { duration: 5000 });
-          this.router.navigate(['/companies']);
+          this.router.navigate(['dashboard/companies']);  // This should work
         },
-        (error: HttpErrorResponse) => { // Explicitly typing the error
+        (error) => {
           this.snackBar.open('Failed to update company', 'Close', { duration: 5000 });
         }
       );
@@ -82,9 +82,9 @@ export class CompanyaddeditComponent implements OnInit {
       this.companyService.createCompany(companyData).subscribe(
         () => {
           this.snackBar.open('Company created successfully', 'Close', { duration: 5000 });
-          this.router.navigate(['/companies']);
+          this.router.navigate(['/dashboard/companies']);  // This should work
         },
-        (error: HttpErrorResponse) => { // Explicitly typing the error
+        (error) => {
           this.snackBar.open('Failed to create company', 'Close', { duration: 5000 });
         }
       );

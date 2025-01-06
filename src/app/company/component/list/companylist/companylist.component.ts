@@ -58,9 +58,9 @@ export class CompanylistComponent implements OnInit {
   openFormDialog(company?: Company): void {
     // Use the Router to navigate to the add/edit page
     if (company) {
-      this.router.navigate(['/companies/edit', company.id]);
+      this.router.navigate(['/dashboard/companies/edit', company.id]); // Edit existing company
     } else {
-      this.router.navigate(['/companies/add']);
+      this.router.navigate(['/dashboard/companies/add']); // Add new company
     }
   }
 
