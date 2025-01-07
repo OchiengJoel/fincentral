@@ -7,4 +7,5 @@ export interface AuthResponse {
     lastName: string;
     roles: string[];
     companies: string[];
+    defaultCompany?: string; //field is optional
   }

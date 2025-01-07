@@ -1,19 +1,30 @@
 <mat-toolbar color="primary">
   <mat-toolbar-row>
-    <button (click)="toggleDrawer()" mat-icon-button>
+    <button (click)="toggleDrawer()" mat-icon-button aria-label="Menu">
       <mat-icon>menu</mat-icon>
     </button>
 
-    <h1>FinCentral</h1>
+    <h1 class="toolbar-title">FinCentral</h1>
 
     <span class="fill-remaining-space"></span>
 
-    <!-- Display the selected company name if one is selected -->
+    <!-- Display the selected company name -->
     <span *ngIf="selectedCompanyName" class="selected-company">
       | Company: {{ selectedCompanyName }}
     </span>
 
-    <button mat-icon-button [matMenuTriggerFor]="userMenu">
+    <!-- Company Switcher in Toolbar -->
+    <mat-form-field class="company-switcher" *ngIf="companies.length > 1" appearance="fill">
+      <mat-label>Select Company</mat-label>
+      <mat-select [(value)]="selectedCompanyId" (selectionChange)="switchCompany($event.value)">
+        <mat-option *ngFor="let company of companies" [value]="company.id">
+          {{ company.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- User Account Menu -->
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User Menu">
       <mat-icon>account_circle</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
@@ -22,45 +33,34 @@
       <button mat-menu-item (click)="logout()">Logout</button>
     </mat-menu>
 
-    <button mat-icon-button (click)="toggleTheme()">
+    <!-- Theme Toggle -->
+    <button mat-icon-button (click)="toggleTheme()" aria-label="Toggle Theme">
       <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
     </button>
-    
   </mat-toolbar-row>
 </mat-toolbar>
 
-
 <mat-drawer-container autosize>
   <mat-drawer #drawer opened="true" mode="side" class="sidebar">
-    <!-- <mat-drawer #drawer opened="true" mode="side" class="sidebar" (mouseover)="drawer.open()"> -->
     <mat-accordion>
-
-      <mat-expansion-panel>
+      <mat-expansion-panel class="sidebar-panel">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <mat-icon>list</mat-icon>
-            CMS
+            <mat-icon>list</mat-icon> CMS
           </mat-panel-title>
         </mat-expansion-panel-header>
         <mat-nav-list>
-          <!-- <mat-list-item>
-            <button routerLink="accounts" mat-button>
-              <mat-icon>shopping_cart</mat-icon>Branches
-            </button>
-          </mat-list-item> -->
-
           <mat-list-item routerLink="branches">
             <mat-icon>shopping_cart</mat-icon> Branches
           </mat-list-item>
-
           <mat-list-item routerLink="parcelitems">
             <mat-icon>analytics</mat-icon> Items
           </mat-list-item>
-
           <mat-list-item routerLink="weightbands">
             <mat-icon>analytics</mat-icon> Weight Bands
           </mat-list-item>
 
+          <!-- Nested Parcels Panel -->
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>
@@ -74,7 +74,6 @@
               <mat-list-item routerLink="">OverDue</mat-list-item>
             </mat-nav-list>
           </mat-expansion-panel>
-
         </mat-nav-list>
       </mat-expansion-panel>
 
@@ -220,7 +219,7 @@
   </mat-drawer>
 
   <mat-drawer-content>
-    <div style="height: 100vh; text-align: center;">
+    <div class="content-area">
       <router-outlet></router-outlet>
     </div>
   </mat-drawer-content>

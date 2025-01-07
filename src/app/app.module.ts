@@ -36,6 +36,7 @@ import { CompanyaddeditComponent } from './company/component/addedit/companyadde
 import { ProfileComponent } from './home/profile/profile/profile.component';
 import { InventoryListComponent } from './inventory/component/list/inventory-list/inventory-list.component';
 import { InventoryFormComponent } from './inventory/component/addedit/inventory-form/inventory-form.component';
+import { ConfirmationDialogComponent } from './company/component/confirmation/confirmation-dialog/confirmation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { InventoryFormComponent } from './inventory/component/addedit/inventory-
     CompanyaddeditComponent,
     ProfileComponent,
     InventoryListComponent,
-    InventoryFormComponent
+    InventoryFormComponent,
+    ConfirmationDialogComponent
   ],
   imports: [
     BrowserModule,

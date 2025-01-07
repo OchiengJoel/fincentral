@@ -1,13 +1,78 @@
+/* Toolbar Styles */
+.toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  letter-spacing: 1px;
+  margin-left: 16px;
+}
+
+.selected-company {
+  font-size: 0.9rem;
+  color: white;
+  margin-left: 10px;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
 .fill-remaining-space {
   flex: 1 1 auto;
 }
 
-.selected-company {
-  font-size: 0.9rem;  /* Makes the text slightly smaller */
-  color: white;      /* Keeps the text color white */
-  margin-left: 10px; /* Adds a small margin to the left */
-  opacity: 0.7;      /* Makes the text slightly faint */
+.company-switcher {
+  margin-left: 20px;
+  min-width: 220px;
 }
+
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-toolbar-row {
+  padding: 8px 16px;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  background-color: #f5f5f5;
+  padding-top: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+.sidebar-panel .mat-expansion-panel-header {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.mat-nav-list {
+  padding-top: 10px;
+}
+
+.mat-list-item {
+  padding: 10px 15px;
+}
+
+.mat-list-item:hover {
+  background-color: #e0e0e0;
+}
+
+/* Content Area Styling */
+.content-area {
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+}
+
+/* Adjusting icon size for better visibility */
+.mat-icon {
+  font-size: 24px;
+}
+
+/* Menu button styles */
+button.mat-icon-button {
+  padding: 8px;
+}
+
 
 
 

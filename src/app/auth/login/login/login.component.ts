@@ -12,42 +12,56 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class LoginComponent {
 
   loginForm: FormGroup;
+  loading = false; // Variable to manage loading state
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar
-  ){
-
+  ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required],
-    })
+    });
   }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
 
   onSubmit() {
     if (this.loginForm.invalid) return;
-
+  
+    this.loading = true;
     const { username, password } = this.loginForm.value;
-
+  
     this.authService.login(username, password).subscribe(
       (response) => {
         this.authService.storeUserData(response);
         this.router.navigate(['/dashboard']);
         this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
+        this.loading = false;
       },
       (error) => {
-        this.snackBar.open('Login failed. Please try again.', 'Close', { duration: 3000 });
+        if (error.status === 401) {
+          this.snackBar.open('Invalid credentials. Please check your username and password.', 'Close', { duration: 3000 });
+        } else {
+          this.snackBar.open('An unexpected error occurred. Please try again later.', 'Close', { duration: 3000 });
+        }
+        this.loading = false;
       }
     );
   }
+}
 
   // onSubmit(): void {
   //   if (this.loginForm.invalid) return;
-  
+
   //   const { username, password } = this.loginForm.value;
-  
+
   //   this.authService.login(username, password).subscribe(
   //     (response) => {
   //       // Make sure the token is valid
@@ -67,5 +81,3 @@ export class LoginComponent {
   //     }
   //   );
   // }
-
-}

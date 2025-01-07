@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>Confirm Company Switch</h1>
+<div mat-dialog-content>
+  <p>Are you sure you want to switch to <strong>{{ data.companyName }}</strong>?</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" (click)="onConfirm()">Confirm</button>
+</div>
+

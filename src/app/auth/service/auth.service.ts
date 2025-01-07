@@ -97,7 +97,6 @@ export class AuthService {
     const refreshToken = this.getRefreshTokenFromCookie();
     if (!refreshToken) {
       this.snackBar.open('Refresh token not found', 'Close', { duration: 5000 });
-      // Return a default AuthResponse object instead of null
       return of({
         access_token: '',
         refresh_token: '',
@@ -107,15 +106,32 @@ export class AuthService {
         lastName: '',
         roles: [],
         companies: [],
+        defaultCompany: 'No default company',  // Provide a default value
       });
     }
-
+  
     return this.http
       .post<AuthResponse>(`${this.apiUrl}/refresh`, { refresh_token: refreshToken })
       .pipe(
         switchMap((response: AuthResponse) => {
-          this.storeUserData(response); // Store the new access token and refresh token
-          return of(response); // Return the updated response
+          if (this.isTokenExpired(response.access_token)) {
+            this.snackBar.open('Access token has expired. Please log in again.', 'Close', { duration: 5000 });
+            this.logout();
+            return of({
+              access_token: '',
+              refresh_token: '',
+              message: 'Session expired, please log in again',
+              email: '',
+              firstName: '',
+              lastName: '',
+              roles: [],
+              companies: [],
+              defaultCompany: 'No default company',  // Fallback for missing defaultCompany
+            });
+          }
+  
+          this.storeUserData(response);  // Store the new access token and refresh token
+          return of(response);  // Return the updated response
         }),
         catchError((error) => {
           this.snackBar.open('Session expired. Please log in again.', 'Close', {
@@ -123,7 +139,6 @@ export class AuthService {
             panelClass: ['error-snackbar'],
           });
           this.logout();
-          // Return a default AuthResponse object in case of an error
           return of({
             access_token: '',
             refresh_token: '',
@@ -133,9 +148,23 @@ export class AuthService {
             lastName: '',
             roles: [],
             companies: [],
+            defaultCompany: 'No default company',  // Fallback value in case of error
           });
         })
       );
+  }
+  
+  // Utility method to check if the token is expired
+  private isTokenExpired(token: string): boolean {
+    const payload = this.decodeJwt(token);
+    const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
+    return expiryDate ? expiryDate < new Date() : true;
+  }
+  
+  // Utility method to decode JWT token and get the payload
+  private decodeJwt(token: string): any {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload)); // Decode and parse the payload
   }
 
   // Retrieve refresh token from cookie (since it's HTTP-only, it cannot be accessed via JS directly)

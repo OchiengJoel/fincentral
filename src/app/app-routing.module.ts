@@ -42,6 +42,10 @@ const routes: Routes = [
       }
       
     ]
+  },
+
+  { 
+    path: '**', redirectTo: '/login' // Wildcard route for any undefined routes
   }
 
   // { 

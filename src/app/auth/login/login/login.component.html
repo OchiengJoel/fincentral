@@ -8,14 +8,15 @@
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <mat-form-field appearance="fill" class="input-field">
         <mat-label>Username</mat-label>
-        <input matInput formControlName="username" placeholder="Enter your username" required />
+        <input matInput formControlName="username" placeholder="Enter your username" required aria-label="Username" />
         <mat-icon matPrefix>person</mat-icon>
       </mat-form-field>
 
       <mat-form-field appearance="fill" class="input-field">
         <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" placeholder="Enter your password" required />
+        <input matInput [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="Enter your password" required aria-label="Password" />
         <mat-icon matPrefix>lock</mat-icon>
+        <mat-icon matSuffix (click)="togglePasswordVisibility()">visibility</mat-icon>
       </mat-form-field>
 
       <div class="forgot-password">
@@ -23,7 +24,11 @@
       </div>
 
       <div class="login-btn">
-        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">Login</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid || loading">Login</button>
+      </div>
+
+      <div *ngIf="loading" class="spinner-container">
+        <mat-spinner diameter="30"></mat-spinner>
       </div>
 
       <div class="register-link">
