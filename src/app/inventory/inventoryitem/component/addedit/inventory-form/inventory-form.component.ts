@@ -1,8 +1,8 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { InventoryItem } from 'src/app/inventory/model/inventory-item';
-import { InventoryItemService } from 'src/app/inventory/service/inventory-item.service';
+import { InventoryItem } from 'src/app/inventory/inventoryitem/model/inventory-item';
+import { InventoryItemService } from 'src/app/inventory/inventoryitem/service/inventory-item.service';
 
 @Component({
   selector: 'app-inventory-form',

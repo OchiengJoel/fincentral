@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { InventoryItem } from 'src/app/inventory/model/inventory-item';
-import { InventoryItemService } from 'src/app/inventory/service/inventory-item.service';
+import { InventoryItem } from 'src/app/inventory/inventoryitem/model/inventory-item';
+import { InventoryItemService } from 'src/app/inventory/inventoryitem/service/inventory-item.service';
 import { InventoryFormComponent } from '../../addedit/inventory-form/inventory-form.component';
 import { MatDialog } from '@angular/material/dialog';
 

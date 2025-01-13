@@ -34,9 +34,11 @@ import { DashboardComponent } from './home/dashboard/dashboard.component';
 import { CompanylistComponent } from './company/component/list/companylist/companylist.component';
 import { CompanyaddeditComponent } from './company/component/addedit/companyaddedit/companyaddedit.component';
 import { ProfileComponent } from './home/profile/profile/profile.component';
-import { InventoryListComponent } from './inventory/component/list/inventory-list/inventory-list.component';
-import { InventoryFormComponent } from './inventory/component/addedit/inventory-form/inventory-form.component';
+import { InventoryListComponent } from './inventory/inventoryitem/component/list/inventory-list/inventory-list.component';
+import { InventoryFormComponent } from './inventory/inventoryitem/component/addedit/inventory-form/inventory-form.component';
 import { ConfirmationDialogComponent } from './company/component/confirmation/confirmation-dialog/confirmation-dialog.component';
+import { ItemcategorylistComponent } from './inventory/itemcategory/component/list/itemcategorylist/itemcategorylist.component';
+import { ItemcategoryformComponent } from './inventory/itemcategory/component/addedit/itemcategoryform/itemcategoryform.component';
 
 @NgModule({
   declarations: [
@@ -49,7 +51,9 @@ import { ConfirmationDialogComponent } from './company/component/confirmation/co
     ProfileComponent,
     InventoryListComponent,
     InventoryFormComponent,
-    ConfirmationDialogComponent
+    ConfirmationDialogComponent,
+    ItemcategorylistComponent,
+    ItemcategoryformComponent
   ],
   imports: [
     BrowserModule,

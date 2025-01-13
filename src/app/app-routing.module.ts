@@ -6,7 +6,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { CompanylistComponent } from './company/component/list/companylist/companylist.component';
 import { ProfileComponent } from './home/profile/profile/profile.component';
 import { CompanyaddeditComponent } from './company/component/addedit/companyaddedit/companyaddedit.component';
-import { InventoryListComponent } from './inventory/component/list/inventory-list/inventory-list.component';
+import { InventoryListComponent } from './inventory/inventoryitem/component/list/inventory-list/inventory-list.component';
 
 const routes: Routes = [
 
