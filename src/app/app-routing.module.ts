@@ -8,6 +8,7 @@ import { ProfileComponent } from './home/profile/profile/profile.component';
 import { CompanyaddeditComponent } from './company/component/addedit/companyaddedit/companyaddedit.component';
 import { InventoryListComponent } from './inventory/inventoryitem/component/list/inventory-list/inventory-list.component';
 import { ItemcategorylistComponent } from './inventory/itemcategory/component/list/itemcategorylist/itemcategorylist.component';
+import { CountrylistComponent } from './country/country/component/list/countrylist/countrylist.component';
 
 const routes: Routes = [
 
@@ -44,6 +45,10 @@ const routes: Routes = [
 
       {
         path: 'item-category', component: ItemcategorylistComponent
+      },
+
+      {
+        path: 'countries', component: CountrylistComponent
       }
       
     ]

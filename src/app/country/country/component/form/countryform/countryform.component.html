@@ -1,0 +1,30 @@
+<div class="company-form">
+    <form [formGroup]="countryForm" (ngSubmit)="saveCountry()">
+        <mat-form-field>
+            <mat-label>Company Name</mat-label>
+            <input matInput formControlName="name" />
+            <mat-error *ngIf="countryForm.get('name')?.hasError('required')">
+                Country name is required
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+            <mat-label>Company Name</mat-label>
+            <input matInput formControlName="code" />
+            <mat-error *ngIf="countryForm.get('code')?.hasError('required')">
+                Code name is required
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+            <mat-label>Company Name</mat-label>
+            <input matInput formControlName="continent" />
+            <mat-error *ngIf="countryForm.get('continent')?.hasError('required')">
+                Continent name is required
+            </mat-error>
+        </mat-form-field>
+        <button mat-raised-button type="submit" [disabled]="countryForm.invalid">
+            {{ isEditMode ? 'Update' : 'Create' }} Company
+        </button>
+    </form>
+</div>
