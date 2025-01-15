@@ -15,7 +15,7 @@ export class ItemcategorylistComponent {
   displayedColumns: string[] = ['id', 'name', 'description', 'itemType', 'actions'];
   dataSource: MatTableDataSource<Itemcategory> = new MatTableDataSource<Itemcategory>();
   pageIndex: number = 0;
-  pageSize: number = 10;
+  pageSize: number = 50;
 
   constructor(private itemCategoryService: ItemcategoryService, public dialog: MatDialog) {}
 

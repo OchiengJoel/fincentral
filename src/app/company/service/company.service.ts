@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
-import { Company } from '../model/company';
+import { Company, CompanyPage } from '../model/company';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from 'src/app/auth/service/auth.service';
 
@@ -20,59 +20,59 @@ export class CompanyService {
     private authService: AuthService
   ) {}
 
-  // Fetch all companies
-  getCompanies(page: number, size: number): Observable<any> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
-    return this.http.get<any>(`${this.apiUrl}/list?page=${page}&size=${size}`, { headers }).pipe(
-      catchError((error) => {
-        this.snackBar.open('Failed to load companies', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        throw error;
-      })
+  // Helper method to set authorization headers
+  private getAuthHeaders(): HttpHeaders {
+    return new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+  }
+
+  // Get all companies
+  // getCompanies(): Observable<Company[]> {
+  //   return this.http.get<Company[]>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
+  //     // Uncomment to log data for debugging (remove in production)
+  //     // tap(data => console.log('Companies fetched from service:', data)),
+  //     catchError((error) => this.handleError('Failed to load companies', error))
+  //   );
+  // }
+
+  getCompanies(): Observable<CompanyPage> {
+    return this.http.get<CompanyPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
+      catchError((error) => this.handleError('Failed to load companies', error))
     );
   }
 
   // Create a new company
   createCompany(company: Company): Observable<Company> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
-    return this.http.post<Company>(`${this.apiUrl}/create`, company, { headers }).pipe(
-      catchError((error) => {
-        this.snackBar.open('Failed to create company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        throw error;
-      })
+    return this.http.post<Company>(`${this.apiUrl}/create`, company, { headers: this.getAuthHeaders() }).pipe(
+      catchError((error) => this.handleError('Failed to create company', error))
     );
   }
 
-  // Update a company
+  // Update an existing company
   updateCompany(company: Company): Observable<Company> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
-    return this.http.put<Company>(`${this.apiUrl}/update/${company.id}`, company, { headers }).pipe(
-      catchError((error) => {
-        this.snackBar.open('Failed to update company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        throw error;
-      })
+    return this.http.put<Company>(`${this.apiUrl}/update/${company.id}`, company, { headers: this.getAuthHeaders() }).pipe(
+      catchError((error) => this.handleError('Failed to update company', error))
     );
   }
 
   // Fetch a company by ID
   getCompanyById(id: number): Observable<Company> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
-    return this.http.get<Company>(`${this.apiUrl}/${id}`, { headers }).pipe(
-      catchError((error) => {
-        this.snackBar.open('Failed to fetch company details', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        throw error;
-      })
+    return this.http.get<Company>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() }).pipe(
+      catchError((error) => this.handleError('Failed to fetch company details', error))
     );
   }
 
   // Delete a company
   deleteCompany(companyId: number): Observable<void> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
-    return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers }).pipe(
-      catchError((error) => {
-        this.snackBar.open('Failed to delete company', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        throw error;
-      })
+    return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers: this.getAuthHeaders() }).pipe(
+      catchError((error) => this.handleError('Failed to delete company', error))
     );
+  }
+
+  // Helper method to handle errors and show snackbar
+  private handleError(message: string, error: any): Observable<never> {
+    this.snackBar.open(message, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+    console.error(error); // Log the error for debugging
+    throw error;
   }
 
   // Switch the selected company
@@ -90,3 +90,15 @@ export class CompanyService {
     return this.selectedCompanyId$;
   }
 }
+
+
+ // Fetch all companies
+  // getCompanies(page: number, size: number): Observable<any> {
+  //   const headers = new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
+  //   return this.http.get<any>(`${this.apiUrl}/list?page=${page}&size=${size}`, { headers }).pipe(
+  //     catchError((error) => {
+  //       this.snackBar.open('Failed to load companies', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+  //       throw error;
+  //     })
+  //   );
+  // }
