@@ -25,10 +25,11 @@ export class CountryformComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Initialize form
     this.countryForm = this.fb.group({
       name: ['', Validators.required],
       code: ['', Validators.required],
-      continent: [ '', Validators.required]
+      continent: ['', Validators.required]
     });
 
     // Check if we are in edit mode or add mode
@@ -37,31 +38,28 @@ export class CountryformComponent implements OnInit {
       if (id) {
         this.isEditMode = true;
         this.countryId = +id;
-        this.loadCountryDetails;
+        this.loadCountryDetails();  // Load country details if in edit mode
       } else {
         this.isEditMode = false;
       }
     });
   }
 
-  loadCountry(): void {
-    // Use the companyService to fetch the data for the given companyId
-    // Ensure you handle the case where company is null or undefined
-  }
-
+  // Load country details when editing
   loadCountryDetails(): void {
     if (this.countryId) {
       this.countryService.getCountryById(this.countryId).subscribe(
         (country: Country) => {
-          this.countryForm.patchValue(country);
+          this.countryForm.patchValue(country); // Populate form fields with the data
         },
         (error) => {
-          this.snackBar.open('Failed to load company details', 'Close', { duration: 5000 });
+          this.snackBar.open('Failed to load country details', 'Close', { duration: 5000 });
         }
       );
     }
   }
 
+  // Save the country (either create or update)
   saveCountry(): void {
     if (this.countryForm.invalid) {
       return;
@@ -70,11 +68,11 @@ export class CountryformComponent implements OnInit {
     const countryData: Country = this.countryForm.value;
 
     if (this.isEditMode && this.countryId) {
-      countryData.id = this.countryId;  // Make sure the ID is added for update
+      countryData.id = this.countryId;  // Ensure ID is added for update
       this.countryService.updateCountry(countryData).subscribe(
         () => {
           this.snackBar.open('Country updated successfully', 'Close', { duration: 5000 });
-          this.router.navigate(['dashboard/countries']);  // This should work
+          this.router.navigate(['/dashboard/countries']);
         },
         (error) => {
           this.snackBar.open('Failed to update country', 'Close', { duration: 5000 });
@@ -84,7 +82,7 @@ export class CountryformComponent implements OnInit {
       this.countryService.createCountry(countryData).subscribe(
         () => {
           this.snackBar.open('Country created successfully', 'Close', { duration: 5000 });
-          this.router.navigate(['/dashboard/countries']);  // This should work
+          this.router.navigate(['/dashboard/countries']);
         },
         (error) => {
           this.snackBar.open('Failed to create country', 'Close', { duration: 5000 });
