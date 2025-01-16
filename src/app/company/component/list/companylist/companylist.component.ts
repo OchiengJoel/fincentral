@@ -16,7 +16,8 @@ import { Router } from '@angular/router';
 })
 export class CompanylistComponent implements OnInit {
 
-  displayedColumns: string[] = ['id', 'name', 'actions'];
+  // displayedColumns: string[] = ['id', 'name', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'primaryEmail', 'primaryContact', 'country', 'status', 'actions'];
   dataSource: MatTableDataSource<Company> = new MatTableDataSource<Company>([]);
   pageSize = 10;
 

@@ -9,6 +9,7 @@ import { CompanyaddeditComponent } from './company/component/addedit/companyadde
 import { InventoryListComponent } from './inventory/inventoryitem/component/list/inventory-list/inventory-list.component';
 import { ItemcategorylistComponent } from './inventory/itemcategory/component/list/itemcategorylist/itemcategorylist.component';
 import { CountrylistComponent } from './country/country/component/list/countrylist/countrylist.component';
+import { CountryformComponent } from './country/country/component/form/countryform/countryform.component';
 
 const routes: Routes = [
 
@@ -29,10 +30,18 @@ const routes: Routes = [
 
       {
         path: 'companies/add', component: CompanyaddeditComponent // Add this route
-      },
+      },    
       
       {
         path: 'companies/edit/:id', component: CompanyaddeditComponent // Make sure edit route has a parameter for company ID
+      },
+
+      {
+        path: 'countries/add', component: CountryformComponent
+      },
+
+      {
+        path: 'countries/edit/:id', component: CountryformComponent
       },
 
       {

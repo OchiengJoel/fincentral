@@ -24,6 +24,7 @@ import { FormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDrawerContainer, MatSidenavModule} from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -83,6 +84,7 @@ import { CountryformComponent } from './country/country/component/form/countryfo
     MatSelectModule,
     MatTableModule,
     MatProgressSpinnerModule,
+    MatCheckboxModule,
     ReactiveFormsModule,
     AppRoutingModule,
     JwtModule.forRoot({

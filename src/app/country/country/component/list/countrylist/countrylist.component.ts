@@ -6,6 +6,8 @@ import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { CountryService } from '../../../service/country.service';
 import { CountryformComponent } from '../../form/countryform/countryform.component';
+import { Country } from '../../../model/country';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-countrylist',
@@ -15,12 +17,19 @@ import { CountryformComponent } from '../../form/countryform/countryform.compone
 export class CountrylistComponent implements OnInit{
 
   displayedColumns: string[] = ['id', 'name', 'code', 'continent', 'actions'];
-  dataSource = new MatTableDataSource<any>();
+  //dataSource = new MatTableDataSource<any>();
+  dataSource: MatTableDataSource<Country> = new MatTableDataSource<Country>([]);
+    pageSize = 10;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  constructor(private countryService: CountryService, private dialog: MatDialog, private snackBar: MatSnackBar) { }
+  constructor(
+    private countryService: CountryService, 
+    private dialog: MatDialog, 
+    private snackBar: MatSnackBar,
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
     this.loadCountries();
@@ -41,32 +50,15 @@ export class CountrylistComponent implements OnInit{
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
     });
-  }
+  } 
 
-  openCreateDialog(): void {
-    const dialogRef = this.dialog.open(CountryformComponent, {
-      width: '400px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadCountries();
+  openFormDialog(country?: Country): void {
+      if (country) {
+        this.router.navigate(['/dashboard/countries/edit', country.id]); // Edit existing company
+      } else {
+        this.router.navigate(['/dashboard/countries/add']); // Add new company
       }
-    });
-  }
-
-  openEditDialog(country: any): void {
-    const dialogRef = this.dialog.open(CountryformComponent, {
-      width: '400px',
-      data: country
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadCountries();
-      }
-    });
-  }
+    }
 
   deleteCountry(id: number): void {
     if (confirm('Are you sure you want to delete this country?')) {

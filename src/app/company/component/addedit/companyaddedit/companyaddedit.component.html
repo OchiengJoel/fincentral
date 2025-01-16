@@ -1,14 +1,103 @@
 <div class="company-form">
     <form [formGroup]="companyForm" (ngSubmit)="saveCompany()">
-        <mat-form-field>
-            <mat-label>Company Name</mat-label>
-            <input matInput formControlName="name" />
-            <mat-error *ngIf="companyForm.get('name')?.hasError('required')">
-                Company name is required
-            </mat-error>
-        </mat-form-field>
-        <button mat-raised-button type="submit" [disabled]="companyForm.invalid">
-            {{ isEditMode ? 'Update' : 'Create' }} Company
-        </button>
+      <mat-form-field>
+        <mat-label>Company Name</mat-label>
+        <input matInput formControlName="name" />
+        <mat-error *ngIf="companyForm.get('name')?.hasError('required')">
+          Company name is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Primary Email</mat-label>
+        <input matInput formControlName="primaryEmail" />
+        <mat-error *ngIf="companyForm.get('primaryEmail')?.hasError('required')">
+          Primary email is required
+        </mat-error>
+        <mat-error *ngIf="companyForm.get('primaryEmail')?.hasError('email')">
+          Invalid email format
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Secondary Email</mat-label>
+        <input matInput formControlName="secondaryEmail" />
+        <mat-error *ngIf="companyForm.get('secondaryEmail')?.hasError('email')">
+          Invalid email format
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Primary Contact</mat-label>
+        <input matInput formControlName="primaryContact" />
+        <mat-error *ngIf="companyForm.get('primaryContact')?.hasError('required')">
+          Primary contact is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Secondary Contact</mat-label>
+        <input matInput formControlName="secondaryContact" />
+        <mat-error *ngIf="companyForm.get('secondaryContact')?.hasError('required')">
+          Secondary contact is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Country</mat-label>
+        <mat-select formControlName="country">
+          <mat-option *ngFor="let country of countries" [value]="country.id">
+            {{ country.name }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="companyForm.get('country')?.hasError('required')">
+          Country is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Town</mat-label>
+        <input matInput formControlName="town" />
+        <mat-error *ngIf="companyForm.get('town')?.hasError('required')">
+          Town is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Address</mat-label>
+        <input matInput formControlName="address" />
+        <mat-error *ngIf="companyForm.get('address')?.hasError('required')">
+          Address is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Registration</mat-label>
+        <input matInput formControlName="registration" />
+        <mat-error *ngIf="companyForm.get('registration')?.hasError('required')">
+          Registration is required
+        </mat-error>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Tax ID</mat-label>
+        <input matInput formControlName="tax_id" />
+        <mat-error *ngIf="companyForm.get('tax_id')?.hasError('required')">
+          Tax ID is required
+        </mat-error>
+      </mat-form-field>
+  
+      <!-- Status checkbox field -->
+      <mat-checkbox formControlName="status">
+        Active
+      </mat-checkbox>
+      <mat-error *ngIf="companyForm.get('status')?.hasError('required')">
+        Status is required
+      </mat-error>
+  
+      <button mat-raised-button type="submit" [disabled]="companyForm.invalid">
+        {{ isEditMode ? 'Update' : 'Create' }} Company
+      </button>
     </form>
-</div>
+  </div>
+  
