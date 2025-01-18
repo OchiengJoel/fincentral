@@ -1,3 +1,5 @@
+import { Itemcategory } from "../../itemcategory/model/itemcategory";
+
 export interface InventoryItem {
 
     id?: number;
@@ -6,4 +8,6 @@ export interface InventoryItem {
     quantity: number;
     price: number;
     totalPrice?: number;
+    itemCategoryId?: number;
+    itemCategory?: Itemcategory
 }

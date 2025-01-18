@@ -21,12 +21,19 @@ export class InventoryItemService {
   }
 
   // Create
+  // createInventoryItem(inventoryItem: InventoryItem): Observable<InventoryItem> {
+  //   const headers = this.getAuthHeaders();
+  //   return this.http
+  //     .post<InventoryItem>(`${this.apiUrl}/create`, inventoryItem, { headers })
+  //     .pipe(catchError(this.handleError));  // Add error handling here
+  // }
+
   createInventoryItem(inventoryItem: InventoryItem): Observable<InventoryItem> {
     const headers = this.getAuthHeaders();
     return this.http
-      .post<InventoryItem>(`${this.apiUrl}/create`, inventoryItem, { headers })
-      .pipe(catchError(this.handleError));  // Add error handling here
-  }
+      .post<InventoryItem>(`${this.apiUrl}/create?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
+      .pipe(catchError(this.handleError));
+}
 
   // Read all items with pagination
   getAllInventoryItems(page: number, size: number): Observable<any> {
@@ -47,12 +54,20 @@ export class InventoryItemService {
   }
 
   // Update item
-  updateInventoryItem(id: number, inventoryItem: InventoryItem): Observable<InventoryItem> {
-    const headers = this.getAuthHeaders();
-    return this.http
-      .put<InventoryItem>(`${this.apiUrl}/update/${id}`, inventoryItem, { headers })
-      .pipe(catchError(this.handleError));  // Add error handling here
-  }
+  // updateInventoryItem(id: number, inventoryItem: InventoryItem): Observable<InventoryItem> {
+  //   const headers = this.getAuthHeaders();
+  //   return this.http
+  //     .put<InventoryItem>(`${this.apiUrl}/update/${id}`, inventoryItem, { headers })
+  //     .pipe(catchError(this.handleError));  // Add error handling here
+  // }
+
+  // Updated update method to include itemCategoryId in the URL
+updateInventoryItem(id: number, inventoryItem: InventoryItem): Observable<InventoryItem> {
+  const headers = this.getAuthHeaders();
+  return this.http
+    .put<InventoryItem>(`${this.apiUrl}/update/${id}?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
+    .pipe(catchError(this.handleError));
+}
 
   // Delete item
   deleteInventoryItem(id: number): Observable<void> {

@@ -31,6 +31,7 @@ export class ItemcategoryService {
   
     // Read all items with pagination
     getItemCategories(page: number, size: number): Observable<any> {
+      const headers = this.getAuthHeaders();
       const params = new HttpParams()
         .set('page', page.toString())
         .set('size', size.toString());
@@ -38,6 +39,11 @@ export class ItemcategoryService {
       return this.http
         .get<any>(`${this.apiUrl}/list`, { params })
         .pipe(catchError(this.handleError));  // Add error handling here
+    }
+
+    getAllCategories(): Observable<Itemcategory[]> {
+      const headers = this.getAuthHeaders();
+      return this.http.get<Itemcategory[]>(`${this.apiUrl}/list`);
     }
   
     // Get single item by ID
