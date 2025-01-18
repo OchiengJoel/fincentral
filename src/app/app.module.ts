@@ -25,6 +25,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDrawerContainer, MatSidenavModule} from '@angular/material/sidenav';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -85,6 +87,8 @@ import { CountryformComponent } from './country/country/component/form/countryfo
     MatTableModule,
     MatProgressSpinnerModule,
     MatCheckboxModule,
+    MatSlideToggleModule,
+    MatTooltipModule,
     ReactiveFormsModule,
     AppRoutingModule,
     JwtModule.forRoot({

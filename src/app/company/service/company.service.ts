@@ -25,14 +25,6 @@ export class CompanyService {
     return new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
   }
 
-  // Get all companies
-  // getCompanies(): Observable<Company[]> {
-  //   return this.http.get<Company[]>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
-  //     // Uncomment to log data for debugging (remove in production)
-  //     // tap(data => console.log('Companies fetched from service:', data)),
-  //     catchError((error) => this.handleError('Failed to load companies', error))
-  //   );
-  // }
 
   getCompanies(): Observable<CompanyPage> {
     return this.http.get<CompanyPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
@@ -65,6 +57,30 @@ export class CompanyService {
   deleteCompany(companyId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers: this.getAuthHeaders() }).pipe(
       catchError((error) => this.handleError('Failed to delete company', error))
+    );
+  }
+
+  // Enable company
+  enableCompany(id: number): Observable<Company> {
+    return this.http.patch<Company>(`${this.apiUrl}/${id}/enable`, {}, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to enable company: ' + error.message, 'Close', { duration: 5000 });
+        throw error;
+      })
+    );
+  }
+
+  // Disable company
+  disableCompany(id: number): Observable<Company> {
+    return this.http.patch<Company>(`${this.apiUrl}/${id}/disable`, {}, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      catchError((error) => {
+        this.snackBar.open('Failed to disable company: ' + error.message, 'Close', { duration: 5000 });
+        throw error;
+      })
     );
   }
 

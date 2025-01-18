@@ -2,15 +2,17 @@ import { Injectable } from '@angular/core';
 import { Country, CountryPage } from '../model/country';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Observable, catchError } from 'rxjs';
+import { BehaviorSubject, Observable, catchError } from 'rxjs';
 import { AuthService } from 'src/app/auth/service/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CountryService {
-
   private apiUrl = `http://localhost:8080/api/v2/countries`;
+
+  private countriesSubject: BehaviorSubject<Country[]> = new BehaviorSubject<Country[]>([]);  // To cache the countries
+  public countries$: Observable<Country[]> = this.countriesSubject.asObservable();  // Expose the observable
 
   constructor(
     private http: HttpClient,
@@ -18,14 +20,32 @@ export class CountryService {
     private authService: AuthService
   ) {}
 
+  // Auth headers for API requests
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
   }
 
-  // Get all countries
-  getCountries(): Observable<CountryPage> {
-    return this.http.get<CountryPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
+  // Get all countries (loads the list and caches it)
+  getCountries(): Observable<Country[]> {
+    // Check if the countries are already cached
+    if (this.countriesSubject.value.length === 0) {
+      // If not cached, load from API
+      this.loadCountriesFromApi();
+    }
+    return this.countries$;  // Return the cached observable
+  }
+
+  // Load countries from API and cache them
+  private loadCountriesFromApi(): void {
+    this.http.get<CountryPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
       catchError(this.handleError('Failed to load countries'))
+    ).subscribe(
+      (response) => {
+        this.countriesSubject.next(response.content);  // Cache the countries array in the BehaviorSubject
+      },
+      (error) => {
+        this.snackBar.open('Failed to load countries', 'Close', { duration: 5000 });
+      }
     );
   }
 

@@ -1,20 +1,65 @@
-mat-card{
-    margin: 2%;
+mat-card {
+  margin: 2%;
 }
 
-th {
-    background-color: black !important;
-    color: white;
-  }
-
-  .spacer{
-    flex: 1 1 auto;
-  }
-
-  button{
-    margin: 3px;
-  }
-
-  .double-underline {
-    border-bottom: 3px double black; /* Adjust thickness and color as needed */
+table {
+  width: 100%;
+  /* table-layout: fixed; */
 }
+
+/* Prevent content from wrapping and ensure no overflow */
+td, th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+td, th {
+  height: 50px; /* Fixed height for cells */
+  line-height: 50px; /* Vertically center text */
+  padding: 0 8px; /* Adjust padding as needed */
+}
+
+/* Optional: Add max-width for content in cells */
+td {
+  max-width: 200px; /* Limit width of cell content */
+  text-overflow: ellipsis; /* Show '...' for overflowing content */
+}
+
+.example-container {
+  height: 500px;
+  max-width: 100%;
+  overflow: auto;
+  font-size: 8px;
+}
+
+th.mat-column-position,
+td.mat-column-position {
+  padding-left: 8px;
+}
+
+.mat-table-sticky:first-child {
+  border-right: 1px solid #e0e0e0;
+}
+
+.mat-table-sticky:last-child {
+  border-left: 1px solid #e0e0e0;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.double-underline {
+  border-bottom: 3px double black; /* Adjust thickness and color as needed */
+}
+
+/* Apply Flexbox to the Action Column cell */
+td.mat-column-actions {
+  display: flex;
+  justify-content: flex-start; /* Align buttons to the left */
+  align-items: center;         /* Align buttons vertically centered */
+  gap: 2px;                    /* Add space between buttons */
+}
+
+/* Smaller mat-icon-button */

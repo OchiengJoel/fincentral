@@ -14,19 +14,20 @@ import { Router } from '@angular/router';
   templateUrl: './countrylist.component.html',
   styleUrls: ['./countrylist.component.css']
 })
-export class CountrylistComponent implements OnInit{
+export class CountrylistComponent implements OnInit {
 
-  displayedColumns: string[] = ['id', 'name', 'code', 'continent', 'actions'];
-  //dataSource = new MatTableDataSource<any>();
+  displayedColumns: string[] = ['select', 'name', 'code', 'continent', 'actions'];
   dataSource: MatTableDataSource<Country> = new MatTableDataSource<Country>([]);
-    pageSize = 10;
+  pageSize = 10;
+  selection: Set<Country> = new Set<Country>();
+  
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
-    private countryService: CountryService, 
-    private dialog: MatDialog, 
+    private countryService: CountryService,
+    private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router
   ) { }
@@ -45,20 +46,20 @@ export class CountrylistComponent implements OnInit{
   }
 
   loadCountries(): void {
-    this.countryService.getCountries().subscribe((response) => {
-      this.dataSource.data = response.content;
+    this.countryService.getCountries().subscribe((countries) => {
+      this.dataSource.data = countries;
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
     });
-  } 
+  }
 
   openFormDialog(country?: Country): void {
-      if (country) {
-        this.router.navigate(['/dashboard/countries/edit', country.id]); // Edit existing company
-      } else {
-        this.router.navigate(['/dashboard/countries/add']); // Add new company
-      }
+    if (country) {
+      this.router.navigate(['/dashboard/countries/edit', country.id]); // Edit existing country
+    } else {
+      this.router.navigate(['/dashboard/countries/add']); // Add new country
     }
+  }
 
   deleteCountry(id: number): void {
     if (confirm('Are you sure you want to delete this country?')) {
@@ -67,6 +68,39 @@ export class CountrylistComponent implements OnInit{
         this.loadCountries();
       });
     }
+  }
+
+
+  toggleAll(event: any): void {
+    if (event.checked) {
+      this.dataSource.data.forEach(country => this.selection.add(country));
+    } else {
+      this.selection.clear();
+    }
+  }
+
+  toggleSelection(country: Country): void {
+    if (this.selection.has(country)) {
+      this.selection.delete(country);
+    } else {
+      this.selection.add(country);
+    }
+  }
+
+  isAllSelected(): boolean {
+    return this.selection.size === this.dataSource.data.length;
+  }
+
+  isSomeSelected(): boolean {
+    return this.selection.size > 0 && this.selection.size < this.dataSource.data.length;
+  }
+
+  hasSelectedCountries(): boolean {
+    return this.selection.size > 0;
+  }
+
+  deleteSelectedCountries(): void {
+
   }
 }
 
