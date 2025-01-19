@@ -32,7 +32,7 @@ export class InventoryListComponent {
   loadInventoryItems(): void {
     this.inventoryItemService.getAllInventoryItems(this.page, this.size).subscribe(
       (response) => {
-        this.inventoryItems = response.items;
+        this.inventoryItems = response;
       },
       (error) => {
         this.snackBar.open('Failed to load inventory items', 'Close', { duration: 5000 });

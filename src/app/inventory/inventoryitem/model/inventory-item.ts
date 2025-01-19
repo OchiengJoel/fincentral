@@ -8,6 +8,14 @@ export interface InventoryItem {
     quantity: number;
     price: number;
     totalPrice?: number;
-    itemCategoryId?: number;
+    itemCategoryId: number;
     itemCategory?: Itemcategory
 }
+
+export interface PaginatedResponse<T> {
+    totalItems: number;
+    size: number;
+    totalPages: number;
+    currentPage: number;
+    items: T[];
+  }
