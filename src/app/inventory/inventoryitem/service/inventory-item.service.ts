@@ -25,10 +25,20 @@ export class InventoryItemService {
     return new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
   }
 
-  createInventoryItem(inventoryItem: InventoryItem): Observable<InventoryItem> {
+  // createInventoryItem(inventoryItem: InventoryItem): Observable<InventoryItem> {
+  //   const headers = this.getAuthHeaders();
+  //   return this.http.post<InventoryItem>(`${this.apiUrl}/create?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
+  //     .pipe(catchError((error) => this.handleError('Failed to create company', error)));
+  // }
+
+  createInventoryItem(inventoryItem: InventoryItem, itemCategoryId: number): Observable<InventoryItem> {
     const headers = this.getAuthHeaders();
-    return this.http.post<InventoryItem>(`${this.apiUrl}/create?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
-      .pipe(catchError((error) => this.handleError('Failed to create company', error)));
+    // Create the query parameters for the itemCategoryId
+    const params = new HttpParams().set('itemCategoryId', itemCategoryId.toString());
+
+    // Send the inventory item data as the request body
+    return this.http.post<InventoryItem>(`${this.apiUrl}/create`, inventoryItem, { params })
+      .pipe(catchError(this.handleError));
   }
 
   // Read all items with pagination
@@ -63,11 +73,17 @@ export class InventoryItemService {
   }
 
   // Updated update method to include itemCategoryId in the URL
-  updateInventoryItem(id: number, inventoryItem: InventoryItem): Observable<InventoryItem> {
+  // updateInventoryItem(id: number, inventoryItem: InventoryItem): Observable<InventoryItem> {
+  //   const headers = this.getAuthHeaders();
+  //   return this.http
+  //     .put<InventoryItem>(`${this.apiUrl}/update/${id}?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
+  //     .pipe(catchError(this.handleError));
+  // }
+
+  update(id: number, inventoryItem: InventoryItem, itemCategoryId: number): Observable<InventoryItem> {
     const headers = this.getAuthHeaders();
-    return this.http
-      .put<InventoryItem>(`${this.apiUrl}/update/${id}?itemCategoryId=${inventoryItem.itemCategoryId}`, inventoryItem, { headers })
-      .pipe(catchError(this.handleError));
+    const url = `${this.apiUrl}/update/${id}?itemCategoryId=${itemCategoryId}`;
+    return this.http.put<InventoryItem>(url, inventoryItem).pipe(catchError(this.handleError));
   }
 
   // Delete item
