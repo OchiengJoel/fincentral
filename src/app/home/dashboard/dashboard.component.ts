@@ -16,7 +16,6 @@ import { CompanyService } from 'src/app/company/service/company.service';
 })
 export class DashboardComponent implements OnInit {
 
-
     companies: Company[] = [];
     selectedCompanyId: number | null = null;
     selectedCompanyName: string = '';  // Variable to hold the selected company's name
@@ -116,44 +115,71 @@ export class DashboardComponent implements OnInit {
       this.companyService.switchCompany(companyId);
     }
   
+    // switchCompany(companyId: number): void {
+    //   const selectedCompany = this.companies.find(company => company.id === companyId);
+    //   if (!selectedCompany) return;
+    
+    //   // Show the confirmation dialog before switching the company
+    //   const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+    //     width: '400px',
+    //     data: {
+    //       companyName: selectedCompany.name
+    //     }
+    //   });
+    
+    //   dialogRef.afterClosed().subscribe(result => {
+    //     if (result === 'confirm') {
+    //       // User confirmed the company switch
+    //       this.selectedCompanyId = companyId;
+    //       this.selectedCompanyName = selectedCompany.name;
+    
+    //       // Store the selected company ID in localStorage
+    //       localStorage.setItem('selectedCompanyId', companyId.toString());
+    
+    //       // Call the company service to switch the company
+    //       this.companyService.switchCompany(companyId);
+    
+    //       // Redirect to the dashboard to ensure correct routing
+    //       this.router.navigate(['/dashboard']).then(() => {
+    //         // Once navigation is successful, reload the page to fetch the company-specific data
+    //         window.location.reload();
+    //       });
+    
+    //       // Optionally, you could call loadCompanySpecificData again, but this may be redundant
+    //       // this.loadCompanySpecificData(companyId);
+    
+    //       // Trigger Angular's change detection to ensure UI reflects the changes immediately
+    //       this.cdRef.detectChanges();
+    //     }
+    //   });
+    // }
+
     switchCompany(companyId: number): void {
       const selectedCompany = this.companies.find(company => company.id === companyId);
       if (!selectedCompany) return;
-    
-      // Show the confirmation dialog before switching the company
+  
       const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-        width: '400px',
-        data: {
-          companyName: selectedCompany.name
-        }
+          width: '400px',
+          data: { companyName: selectedCompany.name }
       });
-    
+  
       dialogRef.afterClosed().subscribe(result => {
-        if (result === 'confirm') {
-          // User confirmed the company switch
-          this.selectedCompanyId = companyId;
-          this.selectedCompanyName = selectedCompany.name;
-    
-          // Store the selected company ID in localStorage
-          localStorage.setItem('selectedCompanyId', companyId.toString());
-    
-          // Call the company service to switch the company
-          this.companyService.switchCompany(companyId);
-    
-          // Redirect to the dashboard to ensure correct routing
-          this.router.navigate(['/dashboard']).then(() => {
-            // Once navigation is successful, reload the page to fetch the company-specific data
-            window.location.reload();
-          });
-    
-          // Optionally, you could call loadCompanySpecificData again, but this may be redundant
-          // this.loadCompanySpecificData(companyId);
-    
-          // Trigger Angular's change detection to ensure UI reflects the changes immediately
-          this.cdRef.detectChanges();
-        }
+          if (result === 'confirm') {
+              this.authService.switchCompany(companyId).subscribe(
+                  (response) => {
+                      this.selectedCompanyId = companyId;
+                      this.selectedCompanyName = selectedCompany.name;
+                      localStorage.setItem('selectedCompanyId', companyId.toString());
+                      this.loadCompanySpecificData(companyId);
+                      this.cdRef.detectChanges();
+                  },
+                  (error) => {
+                      this.errorMessage = 'Failed to switch company';
+                  }
+              );
+          }
       });
-    }
+  }
     
   
     subscribeToSelectedCompany(): void {

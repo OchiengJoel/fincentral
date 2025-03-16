@@ -71,7 +71,7 @@ export class AuthService {
     sessionStorage.setItem('access_token', authResponse.access_token);
 
     // Refresh token stored as HTTP-only cookie (backend should set this)
-    document.cookie = `refresh_token=${authResponse.refresh_token}; HttpOnly; Secure; SameSite=Strict; path=/`;
+    //document.cookie = `refresh_token=${authResponse.refresh_token}; HttpOnly; Secure; SameSite=Strict; path=/`;
 
     // Additional user data in sessionStorage (or any other secure method)
     sessionStorage.setItem('user', JSON.stringify(authResponse));
@@ -187,6 +187,20 @@ export class AuthService {
     document.cookie = 'refresh_token=; Max-Age=-99999999;'; // Delete the cookie
     this.router.navigate(['/login']);
   }
+
+  switchCompany(companyId: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId })
+        .pipe(
+            tap((response: AuthResponse) => {
+                this.storeUserData(response); // Update tokens and user data
+                this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
+            }),
+            catchError((error) => {
+                this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
+                throw error;
+            })
+        );
+}
 }
 
 
