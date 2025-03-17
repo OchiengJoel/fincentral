@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -22,21 +22,34 @@ export class AuthService {
   ) {}
 
   // Login method with AuthResponse type
+
   login(username: string, password: string): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
       .pipe(
-        catchError((error) => {
-          this.snackBar.open('Login failed: ' + error.message, 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar'],
-          });
-          throw error;
+        catchError((error: HttpErrorResponse) => {
+          let message = 'Login failed';
+          if (error.status === 401) message = 'Invalid credentials';
+          this.snackBar.open(message, 'Close', { duration: 5000 });
+          return throwError(() => error);
         })
       );
   }
+  // login(username: string, password: string): Observable<AuthResponse> {
+  //   return this.http
+  //     .post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
+  //     .pipe(
+  //       catchError((error) => {
+  //         this.snackBar.open('Login failed: ' + error.message, 'Close', {
+  //           duration: 5000,
+  //           panelClass: ['error-snackbar'],
+  //         });
+  //         throw error;
+  //       })
+  //     );
+  // }
 
   // Register method with AuthResponse type
+
   register(
     firstName: string,
     lastName: string,
@@ -45,162 +58,271 @@ export class AuthService {
     password: string,
     role: string
   ): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/register`, {
-        firstName,
-        lastName,
-        username,
-        email,
-        password,
-        role,
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
+      firstName, lastName, username, email, password, role
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        let message = 'Registration failed';
+        if (error.status === 409) message = 'User already exists';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
+        return throwError(() => error);
       })
-      .pipe(
-        catchError((error) => {
-          this.snackBar.open('Registration failed: ' + error.message, 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar'],
-          });
-          throw error;
-        })
-      );
+    );
   }
+  // register(
+  //   firstName: string,
+  //   lastName: string,
+  //   username: string,
+  //   email: string,
+  //   password: string,
+  //   role: string
+  // ): Observable<AuthResponse> {
+  //   return this.http
+  //     .post<AuthResponse>(`${this.apiUrl}/register`, {
+  //       firstName,
+  //       lastName,
+  //       username,
+  //       email,
+  //       password,
+  //       role,
+  //     })
+  //     .pipe(
+  //       catchError((error) => {
+  //         this.snackBar.open('Registration failed: ' + error.message, 'Close', {
+  //           duration: 5000,
+  //           panelClass: ['error-snackbar'],
+  //         });
+  //         throw error;
+  //       })
+  //     );
+  // }
 
   // Store tokens in sessionStorage and HTTP-only cookies
+
   storeUserData(authResponse: AuthResponse): void {
-    // Access token stored in memory
     sessionStorage.setItem('access_token', authResponse.access_token);
-
-    // Refresh token stored as HTTP-only cookie (backend should set this)
-    //document.cookie = `refresh_token=${authResponse.refresh_token}; HttpOnly; Secure; SameSite=Strict; path=/`;
-
-    // Additional user data in sessionStorage (or any other secure method)
+    sessionStorage.setItem('refresh_token', authResponse.refresh_token); // Temp until backend sets cookie
     sessionStorage.setItem('user', JSON.stringify(authResponse));
   }
 
-  // Fetch user data
-  getUserData() {
+  getUserData(): AuthResponse {
     return JSON.parse(sessionStorage.getItem('user') || '{}');
   }
 
-  // Retrieve access token from sessionStorage
   getAccessToken(): string | null {
     return sessionStorage.getItem('access_token');
   }
 
-  // Check if the user is authenticated
+  getRefreshToken(): string | null {
+    return sessionStorage.getItem('refresh_token'); // Temp until backend fix
+  }
+
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
 
-  // Handle refresh token logic
   refreshAccessToken(): Observable<AuthResponse> {
-    const refreshToken = this.getRefreshTokenFromCookie();
+    const refreshToken = this.getRefreshToken();
     if (!refreshToken) {
-      this.snackBar.open('Refresh token not found', 'Close', { duration: 5000 });
+      this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
+      this.logout();
       return of({
         access_token: '',
         refresh_token: '',
         message: 'No refresh token found',
-        email: '',
-        firstName: '',
-        lastName: '',
-        roles: [],
-        companies: [],
-        defaultCompany: 'No default company',  // Provide a default value
+        email: '', firstName: '', lastName: '', roles: [], companies: [],
+        defaultCompany: 'No default company'
       });
     }
-  
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/refresh`, { refresh_token: refreshToken })
+
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, {
+      headers: { Authorization: `Bearer ${refreshToken}` }
+    }).pipe(
+      tap((response: AuthResponse) => this.storeUserData(response)),
+      catchError(() => {
+        this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
+        this.logout();
+        return of({
+          access_token: '', refresh_token: '', message: 'Session expired',
+          email: '', firstName: '', lastName: '', roles: [], companies: [],
+          defaultCompany: 'No default company'
+        });
+      })
+    );
+  }
+
+  switchCompany(companyId: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId })
       .pipe(
-        switchMap((response: AuthResponse) => {
-          if (this.isTokenExpired(response.access_token)) {
-            this.snackBar.open('Access token has expired. Please log in again.', 'Close', { duration: 5000 });
-            this.logout();
-            return of({
-              access_token: '',
-              refresh_token: '',
-              message: 'Session expired, please log in again',
-              email: '',
-              firstName: '',
-              lastName: '',
-              roles: [],
-              companies: [],
-              defaultCompany: 'No default company',  // Fallback for missing defaultCompany
-            });
-          }
-  
-          this.storeUserData(response);  // Store the new access token and refresh token
-          return of(response);  // Return the updated response
+        tap((response: AuthResponse) => {
+          this.storeUserData(response);
+          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
         }),
-        catchError((error) => {
-          this.snackBar.open('Session expired. Please log in again.', 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar'],
-          });
-          this.logout();
-          return of({
-            access_token: '',
-            refresh_token: '',
-            message: 'Session expired, please log in again',
-            email: '',
-            firstName: '',
-            lastName: '',
-            roles: [],
-            companies: [],
-            defaultCompany: 'No default company',  // Fallback value in case of error
-          });
+        catchError((error: HttpErrorResponse) => {
+          this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
+          return throwError(() => error);
         })
       );
   }
-  
-  // Utility method to check if the token is expired
+
   private isTokenExpired(token: string): boolean {
     const payload = this.decodeJwt(token);
     const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
     return expiryDate ? expiryDate < new Date() : true;
   }
-  
-  // Utility method to decode JWT token and get the payload
+
   private decodeJwt(token: string): any {
-    const payload = token.split('.')[1];
-    return JSON.parse(atob(payload)); // Decode and parse the payload
-  }
-
-  // Retrieve refresh token from cookie (since it's HTTP-only, it cannot be accessed via JS directly)
-  private getRefreshTokenFromCookie(): string | null {
-    const name = 'refresh_token=';
-    const decodedCookie = document.cookie;
-    const ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) == ' ') c = c.substring(1);
-      if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
     }
-    return null;
   }
 
-  // Logout and clear all data
   logout(): void {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('user');
-    document.cookie = 'refresh_token=; Max-Age=-99999999;'; // Delete the cookie
+    sessionStorage.clear();
     this.router.navigate(['/login']);
   }
 
-  switchCompany(companyId: number): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId })
-        .pipe(
-            tap((response: AuthResponse) => {
-                this.storeUserData(response); // Update tokens and user data
-                this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
-            }),
-            catchError((error) => {
-                this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
-                throw error;
-            })
-        );
-}
+
+
+
+//   storeUserData(authResponse: AuthResponse): void {
+//     // Access token stored in memory
+//     sessionStorage.setItem('access_token', authResponse.access_token);
+
+//     // Refresh token stored as HTTP-only cookie (backend should set this)
+//     //document.cookie = `refresh_token=${authResponse.refresh_token}; HttpOnly; Secure; SameSite=Strict; path=/`;
+
+//     // Additional user data in sessionStorage (or any other secure method)
+//     sessionStorage.setItem('user', JSON.stringify(authResponse));
+//   }
+
+//   // Fetch user data
+//   getUserData() {
+//     return JSON.parse(sessionStorage.getItem('user') || '{}');
+//   }
+
+//   // Retrieve access token from sessionStorage
+//   getAccessToken(): string | null {
+//     return sessionStorage.getItem('access_token');
+//   }
+
+//   // Check if the user is authenticated
+//   isAuthenticated(): boolean {
+//     return !!this.getAccessToken();
+//   }
+
+//   // Handle refresh token logic
+//   refreshAccessToken(): Observable<AuthResponse> {
+//     const refreshToken = this.getRefreshTokenFromCookie();
+//     if (!refreshToken) {
+//       this.snackBar.open('Refresh token not found', 'Close', { duration: 5000 });
+//       return of({
+//         access_token: '',
+//         refresh_token: '',
+//         message: 'No refresh token found',
+//         email: '',
+//         firstName: '',
+//         lastName: '',
+//         roles: [],
+//         companies: [],
+//         defaultCompany: 'No default company',  // Provide a default value
+//       });
+//     }
+  
+//     return this.http
+//       .post<AuthResponse>(`${this.apiUrl}/refresh`, { refresh_token: refreshToken })
+//       .pipe(
+//         switchMap((response: AuthResponse) => {
+//           if (this.isTokenExpired(response.access_token)) {
+//             this.snackBar.open('Access token has expired. Please log in again.', 'Close', { duration: 5000 });
+//             this.logout();
+//             return of({
+//               access_token: '',
+//               refresh_token: '',
+//               message: 'Session expired, please log in again',
+//               email: '',
+//               firstName: '',
+//               lastName: '',
+//               roles: [],
+//               companies: [],
+//               defaultCompany: 'No default company',  // Fallback for missing defaultCompany
+//             });
+//           }
+  
+//           this.storeUserData(response);  // Store the new access token and refresh token
+//           return of(response);  // Return the updated response
+//         }),
+//         catchError((error) => {
+//           this.snackBar.open('Session expired. Please log in again.', 'Close', {
+//             duration: 5000,
+//             panelClass: ['error-snackbar'],
+//           });
+//           this.logout();
+//           return of({
+//             access_token: '',
+//             refresh_token: '',
+//             message: 'Session expired, please log in again',
+//             email: '',
+//             firstName: '',
+//             lastName: '',
+//             roles: [],
+//             companies: [],
+//             defaultCompany: 'No default company',  // Fallback value in case of error
+//           });
+//         })
+//       );
+//   }
+  
+//   // Utility method to check if the token is expired
+//   private isTokenExpired(token: string): boolean {
+//     const payload = this.decodeJwt(token);
+//     const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
+//     return expiryDate ? expiryDate < new Date() : true;
+//   }
+  
+//   // Utility method to decode JWT token and get the payload
+//   private decodeJwt(token: string): any {
+//     const payload = token.split('.')[1];
+//     return JSON.parse(atob(payload)); // Decode and parse the payload
+//   }
+
+//   // Retrieve refresh token from cookie (since it's HTTP-only, it cannot be accessed via JS directly)
+//   private getRefreshTokenFromCookie(): string | null {
+//     const name = 'refresh_token=';
+//     const decodedCookie = document.cookie;
+//     const ca = decodedCookie.split(';');
+//     for (let i = 0; i < ca.length; i++) {
+//       let c = ca[i];
+//       while (c.charAt(0) == ' ') c = c.substring(1);
+//       if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+//     }
+//     return null;
+//   }
+
+//   // Logout and clear all data
+//   logout(): void {
+//     sessionStorage.removeItem('access_token');
+//     sessionStorage.removeItem('user');
+//     document.cookie = 'refresh_token=; Max-Age=-99999999;'; // Delete the cookie
+//     this.router.navigate(['/login']);
+//   }
+
+//   switchCompany(companyId: number): Observable<AuthResponse> {
+//     return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId })
+//         .pipe(
+//             tap((response: AuthResponse) => {
+//                 this.storeUserData(response); // Update tokens and user data
+//                 this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
+//             }),
+//             catchError((error) => {
+//                 this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
+//                 throw error;
+//             })
+//         );
+// }
 }
 
 

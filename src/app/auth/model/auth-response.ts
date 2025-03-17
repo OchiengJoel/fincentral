@@ -8,5 +8,6 @@ export interface AuthResponse {
     roles: string[];
     companies: string[];
     defaultCompany?: string; //field is optional
+    companyIds?: number[];
     
   }
