@@ -22,10 +22,10 @@ export class AuthService {
   ) {}
 
   // Login method with AuthResponse type
-
   login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }, { withCredentials: true })
       .pipe(
+        tap((response: AuthResponse) => this.storeUserData(response)),
         catchError((error: HttpErrorResponse) => {
           let message = 'Login failed';
           if (error.status === 401) message = 'Invalid credentials';
@@ -34,7 +34,110 @@ export class AuthService {
         })
       );
   }
-  // login(username: string, password: string): Observable<AuthResponse> {
+
+  // Register method with AuthResponse type
+  register(
+    firstName: string,
+    lastName: string,
+    username: string,
+    email: string,
+    password: string,
+    role: string
+  ): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
+      firstName, lastName, username, email, password, role
+    }, { withCredentials: true }).pipe(
+      tap((response: AuthResponse) => this.storeUserData(response)),
+      catchError((error: HttpErrorResponse) => {
+        let message = 'Registration failed';
+        if (error.status === 409) message = 'User already exists';
+        this.snackBar.open(message, 'Close', { duration: 5000 });
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Store only access_token and user data; refresh_token is in HTTP-only cookie
+  storeUserData(authResponse: AuthResponse): void {
+    sessionStorage.setItem('access_token', authResponse.access_token);
+    // No need to store refresh_token; it’s managed by the backend as a cookie
+    sessionStorage.setItem('user', JSON.stringify(authResponse));
+  }
+
+  getUserData(): AuthResponse {
+    return JSON.parse(sessionStorage.getItem('user') || '{}');
+  }
+
+  getAccessToken(): string | null {
+    return sessionStorage.getItem('access_token');
+  }
+
+  // Removed getRefreshToken since it’s no longer needed
+  // getRefreshToken(): string | null {
+  //   return sessionStorage.getItem('refresh_token'); // Temp until backend fix
+  // }
+
+  isAuthenticated(): boolean {
+    return !!this.getAccessToken();
+  }
+
+  refreshAccessToken(): Observable<AuthResponse> {
+    // No need to manually send refresh_token; browser sends the cookie with withCredentials
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
+      .pipe(
+        tap((response: AuthResponse) => this.storeUserData(response)),
+        catchError(() => {
+          this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
+          this.logout();
+          return of({
+            access_token: '',
+            refresh_token: '',
+            message: 'Session expired',
+            email: '', firstName: '', lastName: '', roles: [], companies: [],
+            defaultCompany: 'No default company'
+          });
+        })
+      );
+  }
+
+  switchCompany(companyId: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId }, { withCredentials: true })
+      .pipe(
+        tap((response: AuthResponse) => {
+          this.storeUserData(response);
+          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
+        }),
+        catchError((error: HttpErrorResponse) => {
+          this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
+          return throwError(() => error);
+        })
+      );
+  }
+
+  public isTokenExpired(token: string): boolean {
+    const payload = this.decodeJwt(token);
+    const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
+    return expiryDate ? expiryDate < new Date() : true;
+  }
+
+  private decodeJwt(token: string): any {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  logout(): void {
+    sessionStorage.clear();
+    this.router.navigate(['/login']);
+  }
+}
+
+
+
+ // login(username: string, password: string): Observable<AuthResponse> {
   //   return this.http
   //     .post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
   //     .pipe(
@@ -47,28 +150,7 @@ export class AuthService {
   //       })
   //     );
   // }
-
-  // Register method with AuthResponse type
-
-  register(
-    firstName: string,
-    lastName: string,
-    username: string,
-    email: string,
-    password: string,
-    role: string
-  ): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
-      firstName, lastName, username, email, password, role
-    }).pipe(
-      catchError((error: HttpErrorResponse) => {
-        let message = 'Registration failed';
-        if (error.status === 409) message = 'User already exists';
-        this.snackBar.open(message, 'Close', { duration: 5000 });
-        return throwError(() => error);
-      })
-    );
-  }
+  
   // register(
   //   firstName: string,
   //   lastName: string,
@@ -96,96 +178,6 @@ export class AuthService {
   //       })
   //     );
   // }
-
-  // Store tokens in sessionStorage and HTTP-only cookies
-
-  storeUserData(authResponse: AuthResponse): void {
-    sessionStorage.setItem('access_token', authResponse.access_token);
-    sessionStorage.setItem('refresh_token', authResponse.refresh_token); // Temp until backend sets cookie
-    sessionStorage.setItem('user', JSON.stringify(authResponse));
-  }
-
-  getUserData(): AuthResponse {
-    return JSON.parse(sessionStorage.getItem('user') || '{}');
-  }
-
-  getAccessToken(): string | null {
-    return sessionStorage.getItem('access_token');
-  }
-
-  getRefreshToken(): string | null {
-    return sessionStorage.getItem('refresh_token'); // Temp until backend fix
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getAccessToken();
-  }
-
-  refreshAccessToken(): Observable<AuthResponse> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
-      this.logout();
-      return of({
-        access_token: '',
-        refresh_token: '',
-        message: 'No refresh token found',
-        email: '', firstName: '', lastName: '', roles: [], companies: [],
-        defaultCompany: 'No default company'
-      });
-    }
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, {
-      headers: { Authorization: `Bearer ${refreshToken}` }
-    }).pipe(
-      tap((response: AuthResponse) => this.storeUserData(response)),
-      catchError(() => {
-        this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
-        this.logout();
-        return of({
-          access_token: '', refresh_token: '', message: 'Session expired',
-          email: '', firstName: '', lastName: '', roles: [], companies: [],
-          defaultCompany: 'No default company'
-        });
-      })
-    );
-  }
-
-  switchCompany(companyId: number): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId })
-      .pipe(
-        tap((response: AuthResponse) => {
-          this.storeUserData(response);
-          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
-        }),
-        catchError((error: HttpErrorResponse) => {
-          this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
-          return throwError(() => error);
-        })
-      );
-  }
-
-  private isTokenExpired(token: string): boolean {
-    const payload = this.decodeJwt(token);
-    const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
-    return expiryDate ? expiryDate < new Date() : true;
-  }
-
-  private decodeJwt(token: string): any {
-    try {
-      const payload = token.split('.')[1];
-      return JSON.parse(atob(payload));
-    } catch (e) {
-      return null;
-    }
-  }
-
-  logout(): void {
-    sessionStorage.clear();
-    this.router.navigate(['/login']);
-  }
-
-
 
 
 //   storeUserData(authResponse: AuthResponse): void {
@@ -323,7 +315,12 @@ export class AuthService {
 //             })
 //         );
 // }
-}
+
+
+
+
+
+
 
 
 

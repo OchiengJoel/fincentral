@@ -67,6 +67,7 @@ export class DashboardComponent implements OnInit {
   }
 
   switchCompany(companyId: number): void {
+    console.log('Switching to companyId:', companyId);
     const selectedCompany = this.companies.find(c => c.id === companyId);
     if (!selectedCompany) return;
 

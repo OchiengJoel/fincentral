@@ -1,23 +1,46 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { AuthService } from './service/auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(
-    private authService: 
-    AuthService, private router: Router) {}
 
-  canActivate(): boolean {
-    if (this.authService.isAuthenticated()) {
-      return true; // Allow access to the route
-    } else {
-      this.router.navigate(['/']); // Redirect to login page
-      return false; // Deny access to the route
+  constructor(private authService: AuthService, private router: Router) {}
+
+  canActivate(): Observable<boolean> | boolean {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/']);
+      return false;
     }
+
+    const token = this.authService.getAccessToken();
+    if (token && this.authService.isTokenExpired(token)) {
+      return this.authService.refreshAccessToken().pipe(
+        map(() => true),
+        catchError(() => {
+          this.router.navigate(['/']);
+          return of(false);
+        })
+      );
+    }
+    return true;
+  }
+
+
+  // constructor(
+  //   private authService: 
+  //   AuthService, private router: Router) {}
+
+  // canActivate(): boolean {
+  //   if (this.authService.isAuthenticated()) {
+  //     return true; // Allow access to the route
+  //   } else {
+  //     this.router.navigate(['/']); // Redirect to login page
+  //     return false; // Deny access to the route
+  //   }
   }
 
   // constructor(private authService: AuthService, private router: Router) {}
@@ -49,7 +72,7 @@ export class AuthGuard implements CanActivate {
   //     });
   //   });
   // }
-}
+
 
 
 
