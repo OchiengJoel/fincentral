@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSidenav } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -9,6 +10,8 @@ import { AuthService } from 'src/app/auth/service/auth.service';
 import { ConfirmationDialogComponent } from 'src/app/company/component/confirmation/confirmation-dialog/confirmation-dialog.component';
 import { Company } from 'src/app/company/model/company';
 import { CompanyService } from 'src/app/company/service/company.service';
+import { InventoryItem } from 'src/app/inventory/inventoryitem/model/inventory-item';
+import { InventoryItemService } from 'src/app/inventory/inventoryitem/service/inventory-item.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,24 +20,48 @@ import { CompanyService } from 'src/app/company/service/company.service';
 })
 export class DashboardComponent implements OnInit {
 
+  /** List of companies the user can switch between */
   companies: { id: number; name: string }[] = [];
+  /** Currently selected company ID */
   selectedCompanyId: number | null = null;
+  /** Name of the currently selected company */
   selectedCompanyName: string = '';
+  /** User authentication data from AuthService */
   userData!: AuthResponse;
-  displayedColumns: string[] = ['company'];
+  /** Inventory items for the selected company */
+  inventoryItems: InventoryItem[] = [];
+  /** Columns to display in the inventory table */
+  inventoryColumns: string[] = ['name', 'quantity', 'price', 'totalPrice'];
+  /** Reference to the sidenav component */
   @ViewChild('drawer') drawer!: MatSidenav;
+  /** Reference to the paginator component */
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  /** Error message to display to the user */
   errorMessage: string = '';
+  /** Currently open submenu in the sidebar */
   private openSubMenu: string = '';
+  /** Dark mode state */
   isDarkMode: boolean = false;
+  /** Loading state for async operations */
+  loading: boolean = false;
+  /** Pagination: current page size */
+  pageSize: number = 10;
+  /** Pagination: total number of items */
+  totalItems: number = 0;
 
   constructor(
     private authService: AuthService,
     private companyService: CompanyService,
+    private inventoryItemService: InventoryItemService,
     private router: Router,
     private dialog: MatDialog,
     private cdRef: ChangeDetectorRef
   ) {}
 
+  /**
+   * Initializes the component, checks authentication, loads user data,
+   * sets initial company, and subscribes to company changes.
+   */
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
@@ -42,9 +69,11 @@ export class DashboardComponent implements OnInit {
     }
 
     this.userData = this.authService.getUserData();
-    // Map companies with real IDs from AuthResponse
+    // Map companies, handling case where companyIds might be undefined
     this.companies = this.userData.companies.map((name: string, index: number) => ({
-      id: this.userData.companyIds ? this.userData.companyIds[index] : index + 1, // Fallback if companyIds not yet added
+      id: this.userData.companyIds && this.userData.companyIds[index] !== undefined 
+        ? this.userData.companyIds[index] 
+        : index + 1, // Fallback to index + 1 if companyIds is missing
       name
     }));
 
@@ -52,20 +81,28 @@ export class DashboardComponent implements OnInit {
     if (storedCompanyId) {
       this.selectedCompanyId = +storedCompanyId;
       const selectedCompany = this.companies.find(c => c.id === this.selectedCompanyId);
-      if (selectedCompany) this.selectedCompanyName = selectedCompany.name;
+      if (selectedCompany) {
+        this.selectedCompanyName = selectedCompany.name;
+      } else {
+        this.selectedCompanyName = '';
+      }
     } else {
       this.selectedCompanyId = this.companies.length > 0 ? this.companies[0].id : null;
       this.selectedCompanyName = this.companies.length > 0 ? this.companies[0].name : '';
     }
 
-    if (this.selectedCompanyId) {
-      this.loadCompanySpecificData(this.selectedCompanyId);
+    if (this.selectedCompanyId !== null) {
+      this.loadCompanySpecificData(this.selectedCompanyId, 0, this.pageSize);
     }
 
     this.subscribeToSelectedCompany();
     this.setThemeFromLocalStorage();
   }
 
+  /**
+   * Switches the current company after user confirmation.
+   * @param companyId The ID of the company to switch to
+   */
   switchCompany(companyId: number): void {
     console.log('Switching to companyId:', companyId);
     const selectedCompany = this.companies.find(c => c.id === companyId);
@@ -81,51 +118,88 @@ export class DashboardComponent implements OnInit {
         this.companyService.switchCompany(companyId).subscribe({
           next: (response) => {
             this.selectedCompanyId = companyId;
-            this.selectedCompanyName = selectedCompany.name;
-            this.loadCompanySpecificData(companyId);
+            this.selectedCompanyName = response.defaultCompany || selectedCompany.name; // Fallback to local name if undefined
+            localStorage.setItem('selectedCompanyId', companyId.toString());
+            this.inventoryItems = []; // Clear old inventory data
+            this.loadCompanySpecificData(companyId, 0, this.pageSize);
             this.cdRef.detectChanges();
           },
           error: (error) => {
-            this.errorMessage = 'Failed to switch company';
-            console.error(error);
+            this.errorMessage = 'Failed to switch company: ' + (error.message || 'Unknown error');
+            console.error('Switch company error:', error);
           }
         });
       }
     });
   }
 
+  /**
+   * Subscribes to company selection changes from CompanyService.
+   */
   subscribeToSelectedCompany(): void {
     this.companyService.getSelectedCompanyId().subscribe(
       (companyId) => {
         if (companyId !== null && companyId !== this.selectedCompanyId) {
           this.selectedCompanyId = companyId;
           const selectedCompany = this.companies.find(c => c.id === companyId);
-          if (selectedCompany) this.selectedCompanyName = selectedCompany.name;
-          this.loadCompanySpecificData(companyId);
+          if (selectedCompany) {
+            this.selectedCompanyName = selectedCompany.name;
+          } else {
+            this.selectedCompanyName = '';
+          }
+          this.inventoryItems = []; // Clear old inventory data
+          this.loadCompanySpecificData(companyId, 0, this.pageSize);
           this.cdRef.detectChanges();
         }
       },
       (error) => {
-        this.errorMessage = 'Error subscribing to selected company id: ' + error;
+        this.errorMessage = 'Error subscribing to selected company id: ' + (error.message || 'Unknown error');
         console.error(this.errorMessage);
       }
     );
   }
 
-  loadCompanySpecificData(companyId: number): void {
-    console.log(`Fetching additional data for company ID: ${companyId}`);
-    this.companyService.getCompanyById(companyId).subscribe(
-      (data: Company) => {
-        console.log('Company data loaded:', data);
-        // Add logic to update UI with company-specific data if needed
+  /**
+   * Loads inventory data for the specified company with pagination.
+   * @param companyId The ID of the company to load data for
+   * @param page The page index (0-based)
+   * @param size The number of items per page
+   */
+  loadCompanySpecificData(companyId: number, page: number, size: number): void {
+    console.log(`Fetching inventory data for company ID: ${companyId}, page: ${page}, size: ${size}`);
+    this.loading = true;
+    this.errorMessage = '';
+    this.inventoryItemService.getAllInventoryItems(page, size).subscribe(
+      (items: InventoryItem[]) => {
+        this.inventoryItems = items;
+        this.totalItems = items.length > 0 ? 100 : 0; // Placeholder; update with actual total from backend if available
+        this.loading = false;
+        this.cdRef.detectChanges();
+        console.log('Inventory data loaded:', this.inventoryItems);
       },
-      (error: any) => {
-        console.error('Error loading company data:', error);
-        this.errorMessage = 'Error loading company-specific data.';
+      (error) => {
+        this.errorMessage = 'Error loading inventory data: ' + (error.message || 'Unknown error');
+        this.loading = false;
+        console.error('Error loading inventory data:', error);
       }
     );
   }
 
+  /**
+   * Handles pagination events from MatPaginator.
+   * @param event The page event containing new page index and size
+   */
+  handlePageEvent(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    const pageIndex = event.pageIndex;
+    if (this.selectedCompanyId !== null) {
+      this.loadCompanySpecificData(this.selectedCompanyId, pageIndex, this.pageSize);
+    }
+  }
+
+  /**
+   * Applies the saved theme from localStorage on initialization.
+   */
   setThemeFromLocalStorage(): void {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -139,18 +213,29 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  toggleDrawer() {
+  /** Toggles the sidenav visibility */
+  toggleDrawer(): void {
     this.drawer.toggle();
   }
 
+  /**
+   * Checks if a submenu is open.
+   * @param subMenu The submenu identifier
+   * @returns True if the submenu is open
+   */
   isSubMenuOpen(subMenu: string): boolean {
     return this.openSubMenu === subMenu;
   }
 
-  toggleSubMenu(subMenu: string) {
+  /**
+   * Toggles a submenu open or closed.
+   * @param subMenu The submenu identifier
+   */
+  toggleSubMenu(subMenu: string): void {
     this.openSubMenu = this.openSubMenu === subMenu ? '' : subMenu;
   }
 
+  /** Toggles between dark and light themes */
   toggleTheme(): void {
     this.isDarkMode = !this.isDarkMode;
     if (this.isDarkMode) {
@@ -164,10 +249,12 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  /** Logs out the user and navigates to the login page */
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
   }
+
 
   //   companies: Company[] = [];
   //   selectedCompanyId: number | null = null;
