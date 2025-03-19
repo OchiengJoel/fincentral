@@ -14,6 +14,8 @@ import { User } from '../model/user';
 export class AuthService {
 
   private apiUrl = 'http://localhost:8080/api/v2/auth';
+  private companySwitchedSubject = new BehaviorSubject<number | null>(null);
+  public companySwitched$ = this.companySwitchedSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -21,7 +23,6 @@ export class AuthService {
     private router: Router
   ) {}
 
-  // Login method with AuthResponse type
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }, { withCredentials: true })
       .pipe(
@@ -35,32 +36,21 @@ export class AuthService {
       );
   }
 
-  // Register method with AuthResponse type
-  register(
-    firstName: string,
-    lastName: string,
-    username: string,
-    email: string,
-    password: string,
-    role: string
-  ): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, {
-      firstName, lastName, username, email, password, role
-    }, { withCredentials: true }).pipe(
-      tap((response: AuthResponse) => this.storeUserData(response)),
-      catchError((error: HttpErrorResponse) => {
-        let message = 'Registration failed';
-        if (error.status === 409) message = 'User already exists';
-        this.snackBar.open(message, 'Close', { duration: 5000 });
-        return throwError(() => error);
-      })
-    );
+  register(firstName: string, lastName: string, username: string, email: string, password: string, role: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { firstName, lastName, username, email, password, role }, { withCredentials: true })
+      .pipe(
+        tap((response: AuthResponse) => this.storeUserData(response)),
+        catchError((error: HttpErrorResponse) => {
+          let message = 'Registration failed';
+          if (error.status === 409) message = 'User already exists';
+          this.snackBar.open(message, 'Close', { duration: 5000 });
+          return throwError(() => error);
+        })
+      );
   }
 
-  // Store only access_token and user data; refresh_token is in HTTP-only cookie
   storeUserData(authResponse: AuthResponse): void {
     sessionStorage.setItem('access_token', authResponse.access_token);
-    // No need to store refresh_token; it’s managed by the backend as a cookie
     sessionStorage.setItem('user', JSON.stringify(authResponse));
   }
 
@@ -72,17 +62,11 @@ export class AuthService {
     return sessionStorage.getItem('access_token');
   }
 
-  // Removed getRefreshToken since it’s no longer needed
-  // getRefreshToken(): string | null {
-  //   return sessionStorage.getItem('refresh_token'); // Temp until backend fix
-  // }
-
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
 
   refreshAccessToken(): Observable<AuthResponse> {
-    // No need to manually send refresh_token; browser sends the cookie with withCredentials
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
       .pipe(
         tap((response: AuthResponse) => this.storeUserData(response)),
@@ -105,6 +89,7 @@ export class AuthService {
       .pipe(
         tap((response: AuthResponse) => {
           this.storeUserData(response);
+          this.companySwitchedSubject.next(companyId); // Broadcast the switch
           this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
         }),
         catchError((error: HttpErrorResponse) => {
@@ -131,8 +116,10 @@ export class AuthService {
 
   logout(): void {
     sessionStorage.clear();
+    this.companySwitchedSubject.next(null);
     this.router.navigate(['/login']);
   }
+
 }
 
 

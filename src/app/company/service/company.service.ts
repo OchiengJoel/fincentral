@@ -12,7 +12,6 @@ import { AuthResponse } from 'src/app/auth/model/auth-response';
 export class CompanyService {
 
   private apiUrl = 'http://localhost:8080/api/v2/companies';
-  private authApiUrl = 'http://localhost:8080/api/v2/auth';
   private selectedCompanySubject = new BehaviorSubject<number | null>(null);
   public selectedCompanyId$ = this.selectedCompanySubject.asObservable();
 
@@ -20,69 +19,59 @@ export class CompanyService {
     private http: HttpClient,
     private snackBar: MatSnackBar,
     private authService: AuthService
-  ) {}
+  ) {
+    // Sync with AuthService’s company switch events
+    this.authService.companySwitched$.subscribe(companyId => {
+      this.selectedCompanySubject.next(companyId);
+      if (companyId !== null) {
+        localStorage.setItem('selectedCompanyId', companyId.toString());
+      } else {
+        localStorage.removeItem('selectedCompanyId');
+      }
+    });
+  }
 
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders().set('Authorization', `Bearer ${this.authService.getAccessToken()}`);
   }
 
   getCompanies(): Observable<CompanyPage> {
-    return this.http.get<CompanyPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to load companies', error))
-    );
+    return this.http.get<CompanyPage>(`${this.apiUrl}/list`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to load companies')));
   }
 
   createCompany(company: Company): Observable<Company> {
-    return this.http.post<Company>(`${this.apiUrl}/create`, company, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to create company', error))
-    );
+    return this.http.post<Company>(`${this.apiUrl}/create`, company, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to create company')));
   }
 
   updateCompany(company: Company): Observable<Company> {
-    return this.http.put<Company>(`${this.apiUrl}/update/${company.id}`, company, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to update company', error))
-    );
+    return this.http.put<Company>(`${this.apiUrl}/update/${company.id}`, company, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to update company')));
   }
 
   getCompanyById(id: number): Observable<Company> {
-    return this.http.get<Company>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to fetch company details', error))
-    );
+    return this.http.get<Company>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to fetch company details')));
   }
 
   deleteCompany(companyId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to delete company', error))
-    );
+    return this.http.delete<void>(`${this.apiUrl}/${companyId}`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to delete company')));
   }
 
   enableCompany(id: number): Observable<Company> {
-    return this.http.patch<Company>(`${this.apiUrl}/${id}/enable`, {}, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to enable company', error))
-    );
+    return this.http.patch<Company>(`${this.apiUrl}/${id}/enable`, {}, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to enable company')));
   }
 
   disableCompany(id: number): Observable<Company> {
-    return this.http.patch<Company>(`${this.apiUrl}/${id}/disable`, {}, { headers: this.getAuthHeaders() }).pipe(
-      catchError((error) => this.handleError('Failed to disable company', error))
-    );
+    return this.http.patch<Company>(`${this.apiUrl}/${id}/disable`, {}, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError('Failed to disable company')));
   }
 
-  // Updated switchCompany to call /api/v2/auth/switch_company and update tokens
   switchCompany(companyId: number): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.authApiUrl}/switch_company`, { companyId }, { headers: this.getAuthHeaders() })
-      .pipe(
-        tap((response: AuthResponse) => {
-          this.authService.storeUserData(response); // Update tokens
-          this.selectedCompanySubject.next(companyId);
-          localStorage.setItem('selectedCompanyId', companyId.toString());
-          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
-        }),
-        catchError((error) => {
-          this.snackBar.open('Failed to switch company', 'Close', { duration: 5000 });
-          return throwError(() => error);
-        })
-      );
+    return this.authService.switchCompany(companyId);
   }
 
   getSelectedCompanyId(): Observable<number | null> {
@@ -93,10 +82,12 @@ export class CompanyService {
     return this.selectedCompanyId$;
   }
 
-  private handleError(message: string, error: any): Observable<never> {
-    this.snackBar.open(message, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-    console.error(error);
-    return throwError(() => error);
+  private handleError(message: string): (error: any) => Observable<never> {
+    return (error: any) => {
+      this.snackBar.open(message, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+      console.error(error);
+      return throwError(() => error);
+    };
   }
 
   // private apiUrl = `http://localhost:8080/api/v2/companies`;

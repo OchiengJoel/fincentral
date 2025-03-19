@@ -32,19 +32,7 @@ export class InventoryFormComponent {
     public dialogRef: MatDialogRef<InventoryFormComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
-    // this.inventoryItemForm = this.fb.group({
-    //   name: ['', [Validators.required, Validators.maxLength(255)]],
-    //   description: ['', Validators.maxLength(500)],
-    //   quantity: [0, [Validators.required, Validators.min(1)]],
-    //   price: [0, [Validators.required, Validators.min(0)]],
-    //   totalPrice: [{ value: 0, disabled: true }],
-    //   itemCategoryId: ['', Validators.required]
-    // });
-
-    // // Recalculate total price if quantity or price changes
-    // this.inventoryItemForm.valueChanges.subscribe(() => {
-    //   this.updateTotalPrice();
-    // });
+  
   }
 
   ngOnInit(): void {
@@ -149,6 +137,42 @@ export class InventoryFormComponent {
     this.router.navigate(['/dashboard/inventory-item']);
   }
 
+  // Load inventory item details to edit
+  loadInventoryItemDetails(id: number): void {
+    this.inventoryItemService.getInventoryItemById(id).subscribe(
+      (inventory) => {
+        this.isEditMode = true;
+        this.inventoryItemForm.patchValue(inventory);  // Load inventory item details into the form
+      },
+      (error) => {
+        this.snackBar.open('Failed to load inventory item details', 'Close', { duration: 5000 });
+      }
+    );
+  }
+
+   // Cancel the form and close the dialog
+   onCancel1(): void {
+    this.router.navigate(['/dashboard/inventory-item']);
+    this.dialogRef.close(false);  // Close the dialog without saving
+  }
+
+}
+
+
+   // this.inventoryItemForm = this.fb.group({
+    //   name: ['', [Validators.required, Validators.maxLength(255)]],
+    //   description: ['', Validators.maxLength(500)],
+    //   quantity: [0, [Validators.required, Validators.min(1)]],
+    //   price: [0, [Validators.required, Validators.min(0)]],
+    //   totalPrice: [{ value: 0, disabled: true }],
+    //   itemCategoryId: ['', Validators.required]
+    // });
+
+    // // Recalculate total price if quantity or price changes
+    // this.inventoryItemForm.valueChanges.subscribe(() => {
+    //   this.updateTotalPrice();
+    // });
+
   // ngOnInit(): void {
   //   // Get item categories for dropdown
   //   this.categoryService.getAllCategories().subscribe(
@@ -178,19 +202,6 @@ export class InventoryFormComponent {
   //   const totalPrice = quantity * price;
   //   this.inventoryItemForm.patchValue({ totalPrice });
   // }
-
-  // Load inventory item details to edit
-  loadInventoryItemDetails(id: number): void {
-    this.inventoryItemService.getInventoryItemById(id).subscribe(
-      (inventory) => {
-        this.isEditMode = true;
-        this.inventoryItemForm.patchValue(inventory);  // Load inventory item details into the form
-      },
-      (error) => {
-        this.snackBar.open('Failed to load inventory item details', 'Close', { duration: 5000 });
-      }
-    );
-  }
 
 
   // Save the form data (create or update)
@@ -222,13 +233,7 @@ export class InventoryFormComponent {
   //   }
   // }
 
-  // Cancel the form and close the dialog
-  onCancel1(): void {
-    this.router.navigate(['/dashboard/inventory-item']);
-    this.dialogRef.close(false);  // Close the dialog without saving
-  }
-
-}
+ 
 
 
 // save(): void {
