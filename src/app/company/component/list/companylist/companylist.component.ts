@@ -4,7 +4,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { Company } from 'src/app/company/model/company';
+import { Company, CompanyPage } from 'src/app/company/model/company';
 import { CompanyService } from 'src/app/company/service/company.service';
 import { CompanyaddeditComponent } from '../../addedit/companyaddedit/companyaddedit.component';
 import { Router } from '@angular/router';
@@ -18,10 +18,13 @@ import { Country } from 'src/app/country/country/model/country';
 })
 export class CompanylistComponent implements OnInit {
 
-  displayedColumns: string[] = ['select', 'name', 'primaryEmail', 'primaryContact', 'country', 'town', 'secondaryEmail', 'secondaryContact', 'address', 'registration', 'tax_id', 'status', 'actions'];
+  displayedColumns: string[] = [
+    'select', 'name', 'primaryEmail', 'primaryContact', 'country', 'town',
+    'secondaryEmail', 'secondaryContact', 'address', 'registration', 'tax_id', 'status', 'actions'
+  ];
   dataSource: MatTableDataSource<Company> = new MatTableDataSource<Company>([]);
   pageSize = 10;
-  countries: Country[] = []; // Array to hold the countries list
+  countries: Country[] = [];
   selection: Set<Company> = new Set<Company>();
 
   @ViewChild(MatSort) sort!: MatSort;
@@ -32,25 +35,23 @@ export class CompanylistComponent implements OnInit {
     private countryService: CountryService,
     private snackBar: MatSnackBar,
     private router: Router
-  ) { }
-
-  // ngOnInit(): void {
-  //   this.loadCompanies();
-  //   this.loadCountries();
-  // }
+  ) {}
 
   ngOnInit(): void {
-    // Ensure countries are loaded (this will use the cached data if already fetched)
-    this.countryService.getCountries().subscribe(countries => {
-      this.countries = countries;
+    this.countryService.getCountries().subscribe({
+      next: (countries: Country[]) => {
+        this.countries = countries;
+      },
+      error: () => {
+        this.snackBar.open('Failed to load countries', 'Close', { duration: 5000 });
+      }
     });
-    this.loadCompanies();  // Load companies after ensuring countries are available
+    this.loadCompanies();
   }
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
-
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -58,124 +59,72 @@ export class CompanylistComponent implements OnInit {
 
   openFormDialog(company?: Company): void {
     if (company) {
-      this.router.navigate(['/dashboard/companies/edit', company.id]); // Edit existing company
+      this.router.navigate(['/dashboard/companies/edit', company.id]);
     } else {
-      this.router.navigate(['/dashboard/companies/add']); // Add new company
+      this.router.navigate(['/dashboard/companies/add']);
     }
   }
 
-  // Method to get country name based on country ID
   getCountryName(countryId: number): string {
     const country = this.countries.find(c => c.id === countryId);
-    return country ? country.name : 'N/A';  // Return the country name or 'N/A' if not found
+    return country ? country.name : 'N/A';
   }
-  
-
-
-  // loadCompanies(): void {
-  //   this.companyService.getCompanies().subscribe(
-  //     (response) => {
-  //       // Assuming the response structure is as provided (with 'content' field containing the company list)
-  //       this.dataSource.data = response.content.map(company => ({
-  //         ...company,
-  //         countryName: this.getCountryName(company.country) // Add countryName property
-  //       })); // Assign only the 'content' array to the dataSource
-  //       this.dataSource.paginator = this.paginator;
-  //       this.dataSource.sort = this.sort;
-  //     },
-  //     (error) => {
-  //       this.snackBar.open('Failed to load companies', 'Close', { duration: 5000 });
-  //     }
-  //   );
-  // }
 
   loadCompanies(): void {
-    this.companyService.getCompanies().subscribe(
-      (response) => {
-        // Map the company data and assign the countryName based on countryId
+    this.companyService.getCompanies().subscribe({
+      next: (response: CompanyPage) => {
         this.dataSource.data = response.content.map(company => ({
           ...company,
-          countryName: this.getCountryName(company.countryId) // Use countryId to get the name
+          countryName: this.getCountryName(company.countryId)
         }));
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
       },
-      (error) => {
+      error: () => {
         this.snackBar.open('Failed to load companies', 'Close', { duration: 5000 });
       }
-    );
-  }
-
-  
-  
-
-
-  // Load the list of countries
-loadCountries(): void {
-  this.countryService.getCountries().subscribe(
-    (countries) => {
-      this.countries = countries; // Store the countries in the array
-    },
-    (error) => {
-      this.snackBar.open('Failed to load countries', 'Close', { duration: 5000 });
-    }
-  );
-}
-
-
-  deleteCompany1(id: number): void {
-    this.companyService.deleteCompany(id).subscribe(
-      () => {
-        this.snackBar.open('Company deleted successfully', 'Close', { duration: 5000 });
-        this.loadCompanies(); // Reload the list after deletion
-      },
-      () => {
-        this.snackBar.open('Failed to delete company', 'Close', { duration: 5000 });
-      }
-    );
+    });
   }
 
   deleteCompany(id: number): void {
     if (confirm('Confirm to delete this company')) {
       this.companyService.deleteCompany(id).subscribe({
-
         next: () => {
           this.snackBar.open('Company deleted', 'Close', { duration: 5000 });
           this.loadCompanies();
         },
-
         error: () => {
-          this.snackBar.open('Error Performing This Action', 'Close', { duration: 5000, panelClass: ['error-snackbar'] })
+          this.snackBar.open('Error Performing This Action', 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
         }
-
-      })
-
+      });
     }
-
   }
 
   onEnable(companyId: number): void {
-    this.companyService.enableCompany(companyId).subscribe(
-      () => {
+    this.companyService.enableCompany(companyId).subscribe({
+      next: (company: Company) => {
         this.snackBar.open('Company enabled successfully', 'Close', { duration: 3000 });
         this.loadCompanies();
       },
-      (error) => {
-        this.snackBar.open('Failed to enable company: ' + error.message, 'Close', { duration: 5000 });
+      error: (error: any) => {
+        this.snackBar.open(`Failed to enable company: ${error.message || 'Unknown error'}`, 'Close', { duration: 5000 });
       }
-    );
+    });
   }
 
   onDisable(companyId: number): void {
-    this.companyService.disableCompany(companyId).subscribe(
-      () => {
+    this.companyService.disableCompany(companyId).subscribe({
+      next: (company: Company) => {
         this.snackBar.open('Company disabled successfully', 'Close', { duration: 3000 });
         this.loadCompanies();
       },
-      (error) => {
-        this.snackBar.open('Failed to disable company: ' + error.message, 'Close', { duration: 5000 });
+      error: (error: any) => {
+        this.snackBar.open(`Failed to disable company: ${error.message || 'Unknown error'}`, 'Close', { duration: 5000 });
       }
-    );
+    });
   }
 
   toggleAll(event: any): void {
@@ -207,9 +156,8 @@ loadCountries(): void {
   }
 
   deleteSelectedCompanies(): void {
-
+    // Implement if needed
   }
-
 }
 
 

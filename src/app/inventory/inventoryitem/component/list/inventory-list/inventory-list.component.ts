@@ -41,9 +41,7 @@ export class InventoryListComponent {
   }
 
   ngOnDestroy(): void {
-    if (this.companySwitchSubscription) {
-      this.companySwitchSubscription.unsubscribe();
-    }
+    this.companySwitchSubscription?.unsubscribe();
   }
 
   loadInventoryItems(): void {

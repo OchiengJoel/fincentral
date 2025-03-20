@@ -12,99 +12,144 @@ import { User } from '../model/user';
   providedIn: 'root'
 })
 export class AuthService {
-
   private apiUrl = 'http://localhost:8080/api/v2/auth';
   private companySwitchedSubject = new BehaviorSubject<number | null>(null);
-  public companySwitched$ = this.companySwitchedSubject.asObservable();
+  public companySwitched$: Observable<number | null> = this.companySwitchedSubject.asObservable();
 
   constructor(
     private http: HttpClient,
     private snackBar: MatSnackBar,
     private router: Router
-  ) {}
+  ) {
+    // Initialize company ID from local storage if available
+    const storedCompanyId = localStorage.getItem('selectedCompanyId');
+    if (storedCompanyId) {
+      this.companySwitchedSubject.next(+storedCompanyId);
+    }
+  }
 
+  /**
+   * Logs in a user and stores authentication data.
+   * @param username User's username.
+   * @param password User's password.
+   * @returns Observable of AuthResponse.
+   */
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }, { withCredentials: true })
       .pipe(
-        tap((response: AuthResponse) => this.storeUserData(response)),
-        catchError((error: HttpErrorResponse) => {
-          let message = 'Login failed';
-          if (error.status === 401) message = 'Invalid credentials';
-          this.snackBar.open(message, 'Close', { duration: 5000 });
-          return throwError(() => error);
-        })
+        tap(response => {
+          this.storeUserData(response);
+          this.companySwitchedSubject.next(response.companyIds?.[0] || null);
+        }),
+        catchError(this.handleError('Login failed', 'Invalid credentials', 401))
       );
   }
 
-  register(firstName: string, lastName: string, username: string, email: string, password: string, role: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { firstName, lastName, username, email, password, role }, { withCredentials: true })
+  /**
+   * Registers a new user and stores authentication data.
+   * @param firstName User's first name.
+   * @param lastName User's last name.
+   * @param username User's username.
+   * @param email User's email.
+   * @param password User's password.
+   * @param role User's role (optional).
+   * @returns Observable of AuthResponse.
+   */
+  register(firstName: string, lastName: string, username: string, email: string, password: string, role?: string): Observable<AuthResponse> {
+    const body = { firstName, lastName, username, email, password, role };
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, body, { withCredentials: true })
       .pipe(
-        tap((response: AuthResponse) => this.storeUserData(response)),
-        catchError((error: HttpErrorResponse) => {
-          let message = 'Registration failed';
-          if (error.status === 409) message = 'User already exists';
-          this.snackBar.open(message, 'Close', { duration: 5000 });
-          return throwError(() => error);
+        tap(response => {
+          this.storeUserData(response);
+          this.companySwitchedSubject.next(response.companyIds?.[0] || null);
+        }),
+        catchError(this.handleError('Registration failed', 'User already exists', 409))
+      );
+  }
+
+  /**
+   * Switches the active company and updates tokens.
+   * @param companyId The ID of the company to switch to.
+   * @returns Observable of AuthResponse.
+   */
+  switchCompany(companyId: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId }, { withCredentials: true })
+      .pipe(
+        tap(response => {
+          this.storeUserData(response);
+          localStorage.setItem('selectedCompanyId', companyId.toString());
+          this.companySwitchedSubject.next(companyId);
+          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
+        }),
+        catchError(this.handleError('Company switch failed'))
+      );
+  }
+
+  /**
+   * Refreshes the access token using the refresh token cookie.
+   * @returns Observable of AuthResponse.
+   */
+  refreshAccessToken(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
+      .pipe(
+        tap(response => this.storeUserData(response)),
+        catchError(() => {
+          this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
+          this.logout();
+          return of({ access_token: '', refresh_token: '', message: 'Session expired', email: '', firstName: '', lastName: '', roles: [], companies: [], defaultCompany: '' });
         })
       );
   }
 
-  storeUserData(authResponse: AuthResponse): void {
+  /**
+   * Stores user data and tokens in sessionStorage.
+   * @param authResponse The authentication response from the backend.
+   */
+  public storeUserData(authResponse: AuthResponse): void {
     sessionStorage.setItem('access_token', authResponse.access_token);
     sessionStorage.setItem('user', JSON.stringify(authResponse));
   }
 
+  /**
+   * Retrieves stored user data.
+   * @returns AuthResponse object or empty object if not found.
+   */
   getUserData(): AuthResponse {
     return JSON.parse(sessionStorage.getItem('user') || '{}');
   }
 
+  /**
+   * Gets the current access token.
+   * @returns Access token string or null if not present.
+   */
   getAccessToken(): string | null {
     return sessionStorage.getItem('access_token');
   }
 
+  /**
+   * Checks if the user is authenticated.
+   * @returns True if an access token exists.
+   */
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
 
-  refreshAccessToken(): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
-      .pipe(
-        tap((response: AuthResponse) => this.storeUserData(response)),
-        catchError(() => {
-          this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
-          this.logout();
-          return of({
-            access_token: '',
-            refresh_token: '',
-            message: 'Session expired',
-            email: '', firstName: '', lastName: '', roles: [], companies: [],
-            defaultCompany: 'No default company'
-          });
-        })
-      );
-  }
-
-  switchCompany(companyId: number): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/switch_company`, { companyId }, { withCredentials: true })
-      .pipe(
-        tap((response: AuthResponse) => {
-          this.storeUserData(response);
-          this.companySwitchedSubject.next(companyId); // Broadcast the switch
-          this.snackBar.open(`Switched to ${response.defaultCompany}`, 'Close', { duration: 3000 });
-        }),
-        catchError((error: HttpErrorResponse) => {
-          this.snackBar.open('Company switch failed: ' + error.message, 'Close', { duration: 5000 });
-          return throwError(() => error);
-        })
-      );
-  }
-
-  public isTokenExpired(token: string): boolean {
+  /**
+   * Checks if the token is expired.
+   * @param token The JWT token to check.
+   * @returns True if expired or invalid.
+   */
+  isTokenExpired(token: string): boolean {
     const payload = this.decodeJwt(token);
     const expiryDate = payload?.exp ? new Date(payload.exp * 1000) : null;
     return expiryDate ? expiryDate < new Date() : true;
   }
 
+  /**
+   * Decodes a JWT token to extract its payload.
+   * @param token The JWT token.
+   * @returns Decoded payload or null if invalid.
+   */
   private decodeJwt(token: string): any {
     try {
       const payload = token.split('.')[1];
@@ -114,12 +159,32 @@ export class AuthService {
     }
   }
 
+  /**
+   * Logs out the user and clears storage.
+   */
   logout(): void {
     sessionStorage.clear();
+    localStorage.removeItem('selectedCompanyId');
     this.companySwitchedSubject.next(null);
     this.router.navigate(['/login']);
   }
 
+  /**
+   * Handles HTTP errors with custom messages.
+   * @param defaultMessage Default error message.
+   * @param specificMessage Specific message for a given status code.
+   * @param statusCode Optional status code to trigger specific message.
+   * @returns Error handler function.
+   */
+  private handleError(defaultMessage: string, specificMessage?: string, statusCode?: number) {
+    return (error: HttpErrorResponse): Observable<never> => {
+    const message = (statusCode && error.status === statusCode)? (specificMessage ?? defaultMessage): `${defaultMessage}: ${error.message || 'Unknown error'}`;
+      this.snackBar.open(message, 'Close', { duration: 5000 });
+      return throwError(() => error);
+    };
+  }
+
+  
 }
 
 
