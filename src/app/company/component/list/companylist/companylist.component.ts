@@ -23,7 +23,7 @@ export class CompanylistComponent implements OnInit {
     'secondaryEmail', 'secondaryContact', 'address', 'registration', 'tax_id', 'status', 'actions'
   ];
   dataSource: MatTableDataSource<Company> = new MatTableDataSource<Company>([]);
-  pageSize = 10;
+  pageSize = 20;
   countries: Country[] = [];
   selection: Set<Company> = new Set<Company>();
 

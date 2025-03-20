@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { InventoryItem, PaginatedResponse } from 'src/app/inventory/inventoryitem/model/inventory-item';
@@ -7,6 +7,9 @@ import { InventoryFormComponent } from '../../addedit/inventory-form/inventory-f
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs/internal/Subscription';
 import { AuthService } from 'src/app/auth/service/auth.service';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-inventory-list',
@@ -16,11 +19,17 @@ import { AuthService } from 'src/app/auth/service/auth.service';
 export class InventoryListComponent {
 
   inventoryItems: InventoryItem[] = [];
-  displayedColumns: string[] = ['id', 'name', 'quantity', 'price', 'totalPrice', 'actions'];
+  displayedColumns: string[] = ['select', 'id', 'name', 'quantity', 'price', 'totalPrice', 'actions'];
   page = 0;
   size = 10;
   totalItems = 0;
   private companySwitchSubscription!: Subscription;
+  selection: Set<InventoryItem> = new Set<InventoryItem>();
+  dataSource: MatTableDataSource<InventoryItem> = new MatTableDataSource<InventoryItem>(this.inventoryItems);
+
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
 
   constructor(
     private inventoryItemService: InventoryItemService,
@@ -92,5 +101,37 @@ export class InventoryListComponent {
       item.name.toLowerCase().includes(filterValue) ||
       item.description.toLowerCase().includes(filterValue)
     );
+  }
+
+  toggleAll(event: any): void {
+      if (event.checked) {
+        this.dataSource.data.forEach(inventoryitem => this.selection.add(inventoryitem));
+      } else {
+        this.selection.clear();
+      }
+    }
+  
+    toggleSelection(inventoryitem: InventoryItem): void {
+      if (this.selection.has(inventoryitem)) {
+        this.selection.delete(inventoryitem);
+      } else {
+        this.selection.add(inventoryitem);
+      }
+    }
+
+  isAllSelected(): boolean {
+    return this.selection.size === this.dataSource.data.length;
+  }
+
+  isSomeSelected(): boolean {
+    return this.selection.size > 0 && this.selection.size < this.dataSource.data.length;
+  }
+
+  hasSelectedInventoryItems(): boolean {
+    return this.selection.size > 0;
+  }
+
+  deleteSelectedInventoryItem(): void {
+    // Implement if needed
   }
 }
