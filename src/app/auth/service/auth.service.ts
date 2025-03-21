@@ -6,6 +6,9 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { BehaviorSubject, catchError, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { AuthResponse } from '../model/auth-response';
 import { User } from '../model/user';
+import { InactivityService } from './inactivity/inactivity.service';
+import { LockEventService } from '../inactivity/service/lock-event.service';
+import { MatDialog } from '@angular/material/dialog';
 
 
 @Injectable({
@@ -19,7 +22,11 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private snackBar: MatSnackBar,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    //private inactivityService: InactivityService,
+
+    private lockEventService: LockEventService // Replace InactivityService
   ) {
     // Initialize company ID from local storage if available
     const storedCompanyId = localStorage.getItem('selectedCompanyId');
@@ -89,6 +96,18 @@ export class AuthService {
    * Refreshes the access token using the refresh token cookie.
    * @returns Observable of AuthResponse.
    */
+  // refreshAccessToken(): Observable<AuthResponse> {
+  //   return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
+  //     .pipe(
+  //       tap(response => this.storeUserData(response)),
+  //       catchError(() => {
+  //         this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
+  //         this.logout();
+  //         return of({ access_token: '', refresh_token: '', message: 'Session expired', email: '', firstName: '', lastName: '', roles: [], companies: [], defaultCompany: '' });
+  //       })
+  //     );
+  // }
+
   refreshAccessToken(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
       .pipe(
@@ -96,7 +115,38 @@ export class AuthService {
         catchError(() => {
           this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
           this.logout();
-          return of({ access_token: '', refresh_token: '', message: 'Session expired', email: '', firstName: '', lastName: '', roles: [], companies: [], defaultCompany: '' });
+          return of({
+            access_token: '',
+            refresh_token: '',
+            message: 'Session expired',
+            email: '',
+            firstName: '',
+            lastName: '',
+            roles: [],
+            companies: [],
+            defaultCompany: '',
+            companyIds: [],
+            username: '' // Add username to fallback
+          });
+        })
+      );
+  }
+
+   /**
+   * Verifies the user's password to unlock the session.
+   */
+   verifyPassword(password: string): Observable<{ message: string }> {
+    const userData = this.getUserData();
+    const username = userData.username || '';
+    if (!username) {
+      return throwError(() => new Error('No user data available'));
+    }
+    return this.http.post<{ message: string }>(`${this.apiUrl}/verify-password`, { username, password }, { withCredentials: true })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          const message = error.status === 401 ? 'Invalid password' : 'Password verification failed';
+          this.snackBar.open(message, 'Close', { duration: 5000 });
+          return throwError(() => error); // Don’t call logout() here
         })
       );
   }
@@ -162,10 +212,13 @@ export class AuthService {
   /**
    * Logs out the user and clears storage.
    */
+
   logout(): void {
     sessionStorage.clear();
     localStorage.removeItem('selectedCompanyId');
     this.companySwitchedSubject.next(null);
+    this.dialog.closeAll(); // Close all open dialogs
+    this.lockEventService.resetLock(); // Trigger reset via event
     this.router.navigate(['/login']);
   }
 
@@ -183,7 +236,6 @@ export class AuthService {
       return throwError(() => error);
     };
   }
-
   
 }
 

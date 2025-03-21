@@ -10,6 +10,7 @@ import { InventoryListComponent } from './inventory/inventoryitem/component/list
 import { ItemcategorylistComponent } from './inventory/itemcategory/component/list/itemcategorylist/itemcategorylist.component';
 import { CountrylistComponent } from './country/country/component/list/countrylist/countrylist.component';
 import { CountryformComponent } from './country/country/component/form/countryform/countryform.component';
+import { LockScreenComponent } from './auth/inactivity/lock-screen/lock-screen.component';
 
 const routes: Routes = [
 
@@ -20,6 +21,8 @@ const routes: Routes = [
   {
     path:'login', component:LoginComponent
   },
+
+  // { path: 'lock', component: LockScreenComponent },
 
   {
     path:'dashboard', component:DashboardComponent, canActivate:[AuthGuard], children: [

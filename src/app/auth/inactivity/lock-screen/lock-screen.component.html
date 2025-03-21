@@ -1,0 +1,14 @@
+<div class="lock-overlay" *ngIf="(isLocked$ | async) && authService.isAuthenticated()">
+  <div class="lock-container">
+    <h2>Session Locked</h2>
+    <p>Please enter your password to unlock</p>
+    <form (ngSubmit)="unlock()">
+      <mat-form-field>
+        <mat-label>Password</mat-label>
+        <input matInput type="password" [(ngModel)]="password" name="password" required>
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isUnlocking">Unlock</button>
+      <p *ngIf="error" class="error">{{ error }}</p>
+    </form>
+  </div>
+</div>

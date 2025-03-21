@@ -1,0 +1,31 @@
+.lock-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999; /* Ensure this is higher than any form/modal z-index */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto; /* Ensure overlay captures all events */
+}
+.lock-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  z-index: 10000; /* Higher than overlay */
+}
+.error {
+  color: red;
+}
+/* Disable underlying elements */
+:host-context(.locked) * {
+  pointer-events: none;
+}
+.lock-overlay * {
+  pointer-events: auto; /* Allow interaction with lock screen */
+}

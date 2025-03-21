@@ -9,5 +9,6 @@ export interface AuthResponse {
     companies: string[];
     defaultCompany?: string; //field is optional
     companyIds?: number[];
+    username: string;
     
   }
