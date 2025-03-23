@@ -47,6 +47,8 @@ export class AuthService {
         tap(response => {
           this.storeUserData(response);
           this.companySwitchedSubject.next(response.companyIds?.[0] || null);
+          this.lockEventService.resetLock(); // Reset lock state on successful login
+          this.router.navigate(['/dashboard']); // Redirect to dashboard
         }),
         catchError(this.handleError('Login failed', 'Invalid credentials', 401))
       );
@@ -96,17 +98,6 @@ export class AuthService {
    * Refreshes the access token using the refresh token cookie.
    * @returns Observable of AuthResponse.
    */
-  // refreshAccessToken(): Observable<AuthResponse> {
-  //   return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
-  //     .pipe(
-  //       tap(response => this.storeUserData(response)),
-  //       catchError(() => {
-  //         this.snackBar.open('Session expired. Please log in again.', 'Close', { duration: 5000 });
-  //         this.logout();
-  //         return of({ access_token: '', refresh_token: '', message: 'Session expired', email: '', firstName: '', lastName: '', roles: [], companies: [], defaultCompany: '' });
-  //       })
-  //     );
-  // }
 
   refreshAccessToken(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh_token`, null, { withCredentials: true })
