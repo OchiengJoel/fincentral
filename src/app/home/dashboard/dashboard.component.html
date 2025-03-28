@@ -16,6 +16,7 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <button mat-raised-button color="accent" (click)="backToDashboard()" class="dashboard-btn">Dashboard</button>
     <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User Menu">
       <mat-icon>account_circle</mat-icon>
     </button>
@@ -36,59 +37,84 @@
   </mat-drawer>
 
   <mat-drawer-content>
-    <!-- <div class="content-area" [class.dark-mode]="isDarkMode">
+    <div class="content-area" [class.dark-mode]="isDarkMode">
       <h2>{{ selectedModule?.moduleName || 'Dashboard' }} - {{ selectedCompanyName }}</h2>
 
+      <!-- Loading Spinner -->
       <mat-spinner *ngIf="loading" diameter="50" style="margin: 20px auto;"></mat-spinner>
 
-      <div class="entities-section" *ngIf="!loading">
-        <h3>Available Entities</h3>
-        <div class="entity-cards">
-          <div class="entity-card" *ngFor="let entity of selectedModule?.entities" (click)="navigateToEntity(entity.entityId)">
-            <h4>{{ entity.entityName }}</h4>
-            <p>Actions: {{ entity.allowedActions.join(', ') }}</p>
+      <!-- Module Overview (Shown when no child route is active) -->
+      <div class="module-overview" *ngIf="!route.children.length && !loading">
+        <h3>Welcome to {{ selectedModule?.moduleName }}</h3>
+        <p>Manage your {{ selectedModule?.moduleId === 'inventory' ? 'inventory and stock' : 'car sales and purchases' }} efficiently.</p>
+
+        <!-- Entity Cards -->
+        <div class="entities-section">
+          <h3>Available Entities</h3>
+          <div class="entity-cards">
+            <div class="entity-card" *ngFor="let entity of selectedModule?.entities" (click)="navigateToEntity(entity.entityId)">
+              <h4>{{ entity.entityName }}</h4>
+              <p>Actions: {{ entity.allowedActions.join(', ') }}</p>
+            </div>
           </div>
         </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid" *ngIf="selectedModule?.moduleId === 'inventory'">
+          <div class="metric-card">
+            <h4>Total Items</h4>
+            <p>{{ totalItems || 'N/A' }}</p>
+          </div>
+        </div>
+
+        <div class="message-box">
+          <div class="buttons-con">
+            <div class="action-link-wrap">
+              <a onclick="history.back(-1)" class="link-button link-back-button">Dashboard</a>
+              <!-- <a href="" class="link-button">Go to Home Page</a> -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Condensed Preview for Inventory -->
+        <div class="module-data" *ngIf="selectedModule?.moduleId === 'inventory' && inventoryItems.length">
+          <h3>Inventory Snapshot</h3>
+          <table mat-table [dataSource]="inventoryItems.slice(0, 5)">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+            </ng-container>
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef>Quantity</th>
+              <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+            </ng-container>
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let item">{{ item.price }}</td>
+            </ng-container>
+            <ng-container matColumnDef="totalPrice">
+              <th mat-header-cell *matHeaderCellDef>Total Price</th>
+              <td mat-cell *matCellDef="let item">{{ item.totalPrice }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="inventoryColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: inventoryColumns;"></tr>
+          </table>
+        </div>
+
+        <!-- Placeholder for Car Sales -->
+        <div class="module-data" *ngIf="selectedModule?.moduleId === 'car-sales'">
+          <h3>Car Sales Overview</h3>
+          <p>Car Sales data will be displayed here once implemented.</p>
+        </div>
+        
       </div>
 
-      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'inventory' && inventoryItems.length">
-        <h3>Inventory Preview</h3>
-        <table mat-table [dataSource]="inventoryItems">
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let item">{{ item.name }}</td>
-          </ng-container>
-          <ng-container matColumnDef="quantity">
-            <th mat-header-cell *matHeaderCellDef>Quantity</th>
-            <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
-          </ng-container>
-          <ng-container matColumnDef="price">
-            <th mat-header-cell *matHeaderCellDef>Price</th>
-            <td mat-cell *matCellDef="let item">{{ item.price }}</td>
-          </ng-container>
-          <ng-container matColumnDef="totalPrice">
-            <th mat-header-cell *matHeaderCellDef>Total Price</th>
-            <td mat-cell *matCellDef="let item">{{ item.totalPrice }}</td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="inventoryColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: inventoryColumns;"></tr>
-        </table>
-        <mat-paginator [length]="totalItems" [pageSize]="pageSize" (page)="handlePageEvent($event)"></mat-paginator>
-      </div>
+      <!-- Error Message -->
+      <p class="error" *ngIf="errorMessage && !route.children.length">{{ errorMessage }}</p>
 
-      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'car-sales'">
-        <h3>Car Sales Preview</h3>
-        <p>Car Sales data will be displayed here once implemented.</p>
-      </div>
-
-      <div class="navigation-buttons" *ngIf="!loading">
-        <button mat-raised-button color="primary" (click)="router.navigate(['/modules'])">Back to Modules</button>
-      </div>
-
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
-    </div> -->
+      <!-- Child Route Content -->
       <router-outlet></router-outlet>
-    
+    </div>
   </mat-drawer-content>
 </mat-drawer-container>
 

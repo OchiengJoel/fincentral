@@ -30,6 +30,7 @@
 
 .mat-toolbar-row {
   padding: 8px 16px;
+  align-items: center; /* Align toolbar items vertically */
 }
 
 /* Sidebar Styles */
@@ -37,23 +38,11 @@
   background-color: #f5f5f5;
   padding-top: 20px;
   font-family: 'Roboto', sans-serif;
+  width: 250px; /* Fixed width for consistency */
 }
 
-.sidebar-panel .mat-expansion-panel-header {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.mat-nav-list {
-  padding-top: 10px;
-}
-
-.mat-list-item {
-  padding: 10px 15px;
-}
-
-.mat-list-item:hover {
-  background-color: #e0e0e0;
+.dark-mode .sidebar {
+  background-color: #333;
 }
 
 /* Content Area Styling */
@@ -63,17 +52,223 @@
   min-height: 100vh;
 }
 
-/* Adjusting icon size for better visibility */
-.mat-icon {
-  font-size: 24px;
+.dark-mode .content-area {
+  background-color: #212121;
+  color: #fff;
 }
 
-/* Menu button styles */
+/* Icon Adjustments */
+.mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+}
+
 button.mat-icon-button {
   padding: 8px;
 }
 
+/* Module Overview */
+.module-overview {
+  padding: 20px;
+}
 
+.module-overview h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.5rem;
+}
+
+.module-overview p {
+  margin: 0 0 20px 0;
+  color: #666;
+}
+
+.dark-mode .module-overview p {
+  color: #ccc;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.metric-card {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: background 0.3s ease;
+}
+
+.metric-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+}
+
+.metric-card p {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.dark-mode .metric-card {
+  background: #333;
+  color: #fff;
+}
+
+.metric-card:hover {
+  background: #e0e0e0;
+}
+
+.dark-mode .metric-card:hover {
+  background: #555;
+}
+
+/* Entities Section */
+.entities-section {
+  margin-top: 20px; /* Reduced from 40px for tighter layout */
+}
+
+.entities-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.25rem;
+}
+
+.entity-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px; /* Reduced from 55px for better spacing */
+}
+
+.entity-card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.entity-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+}
+
+.entity-card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.dark-mode .entity-card {
+  background: #424242;
+  color: #fff;
+}
+
+.dark-mode .entity-card p {
+  color: #ccc;
+}
+
+.entity-card:hover {
+  background: #e0e0e0;
+}
+
+.dark-mode .entity-card:hover {
+  background: #616161;
+}
+
+/* Module Data (Inventory Snapshot) */
+.module-data {
+  margin-top: 30px;
+}
+
+.module-data h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.25rem;
+}
+
+mat-table {
+  background: #fff;
+  border-radius: 8px;
+}
+
+.dark-mode mat-table {
+  background: #424242;
+}
+
+th.mat-header-cell {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.dark-mode th.mat-header-cell {
+  background: #333;
+  color: #fff;
+}
+
+td.mat-cell {
+  color: #333;
+}
+
+.dark-mode td.mat-cell {
+  color: #fff;
+}
+
+/* Message Box and Buttons */
+.message-box {
+  margin: 30px 0;
+  text-align: center;
+}
+
+.buttons-con {
+  margin-top: 20px;
+}
+
+.action-link-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.link-button {
+  background: #68c950;
+  padding: 8px 25px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+.link-button:hover {
+  background: #5a5c6c;
+}
+
+.link-back-button {
+  background: #1976d2; /* Angular Material primary */
+}
+
+.link-back-button:hover {
+  background: #1565c0;
+}
+
+/* Error Message */
+.error {
+  color: #d32f2f;
+  margin: 20px 0;
+  font-size: 0.9rem;
+}
+
+.dashboard-btn {
+  margin: 0 10px;
+  padding: 0 16px; /* Smaller padding for compactness */
+  font-size: 0.9rem;
+}
 
 
 

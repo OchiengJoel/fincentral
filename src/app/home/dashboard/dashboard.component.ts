@@ -48,7 +48,7 @@ export class DashboardComponent implements OnInit {
     public router: Router,
     private dialog: MatDialog,
     private cdRef: ChangeDetectorRef,
-    private route: ActivatedRoute,
+    public route: ActivatedRoute,
     private snackBar: MatSnackBar
   ) {}
 
@@ -104,7 +104,7 @@ export class DashboardComponent implements OnInit {
       });
     } else if (this.selectedModule?.moduleId === 'car-sales') {
       this.loading = false;
-      this.snackBar.open('Car Sales data not yet implemented.', 'Close', { duration: 5000 });
+      // Placeholder for future implementation
     }
   }
 
@@ -147,11 +147,13 @@ export class DashboardComponent implements OnInit {
     const routeMap: { [key: string]: string } = {
       'inventory-items': 'inventory-item',
       'item-categories': 'item-category'
-      // Add more mappings as needed, e.g., 'item-types': 'item-type'
     };
-    const routePath = routeMap[entityId] || entityId; // Fallback to entityId if no mapping
-    console.log(`Navigating to: ${basePath}/${routePath}`, { entityId, routePath });
+    const routePath = routeMap[entityId] || entityId;
     this.router.navigate([`${basePath}/${routePath}`]);
+  }
+
+  backToDashboard(): void {
+    this.router.navigate(['/dashboard', this.selectedModule?.moduleId]);
   }
 
   toggleDrawer(): void {
