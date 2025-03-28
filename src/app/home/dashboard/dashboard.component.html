@@ -3,17 +3,113 @@
     <button (click)="toggleDrawer()" mat-icon-button aria-label="Menu">
       <mat-icon>menu</mat-icon>
     </button>
+    <h1 class="toolbar-title">FinCentral</h1>
+    <span class="fill-remaining-space"></span>
+    <span *ngIf="selectedCompanyName" class="selected-company">
+      | Company: {{ selectedCompanyName }}
+    </span>
+    <mat-form-field class="company-switcher" *ngIf="companies.length > 1" appearance="fill">
+      <mat-label>Select Company</mat-label>
+      <mat-select [(value)]="selectedCompanyId" (selectionChange)="switchCompany($event.value)">
+        <mat-option *ngFor="let company of companies" [value]="company.id">
+          {{ company.name }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User Menu">
+      <mat-icon>account_circle</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item routerLink="/dashboard/profile">Profile</button>
+      <button mat-menu-item>Settings</button>
+      <button mat-menu-item (click)="logout()">Logout</button>
+    </mat-menu>
+    <button mat-icon-button (click)="toggleTheme()" aria-label="Toggle Theme">
+      <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-drawer-container autosize>
+  <mat-drawer #drawer opened="true" mode="side" class="sidebar">
+    <app-sidebar [selectedModule]="selectedModule" [isDarkMode]="isDarkMode"></app-sidebar>
+  </mat-drawer>
+
+  <mat-drawer-content>
+    <!-- <div class="content-area" [class.dark-mode]="isDarkMode">
+      <h2>{{ selectedModule?.moduleName || 'Dashboard' }} - {{ selectedCompanyName }}</h2>
+
+      <mat-spinner *ngIf="loading" diameter="50" style="margin: 20px auto;"></mat-spinner>
+
+      <div class="entities-section" *ngIf="!loading">
+        <h3>Available Entities</h3>
+        <div class="entity-cards">
+          <div class="entity-card" *ngFor="let entity of selectedModule?.entities" (click)="navigateToEntity(entity.entityId)">
+            <h4>{{ entity.entityName }}</h4>
+            <p>Actions: {{ entity.allowedActions.join(', ') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'inventory' && inventoryItems.length">
+        <h3>Inventory Preview</h3>
+        <table mat-table [dataSource]="inventoryItems">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Price</th>
+            <td mat-cell *matCellDef="let item">{{ item.price }}</td>
+          </ng-container>
+          <ng-container matColumnDef="totalPrice">
+            <th mat-header-cell *matHeaderCellDef>Total Price</th>
+            <td mat-cell *matCellDef="let item">{{ item.totalPrice }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="inventoryColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: inventoryColumns;"></tr>
+        </table>
+        <mat-paginator [length]="totalItems" [pageSize]="pageSize" (page)="handlePageEvent($event)"></mat-paginator>
+      </div>
+
+      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'car-sales'">
+        <h3>Car Sales Preview</h3>
+        <p>Car Sales data will be displayed here once implemented.</p>
+      </div>
+
+      <div class="navigation-buttons" *ngIf="!loading">
+        <button mat-raised-button color="primary" (click)="router.navigate(['/modules'])">Back to Modules</button>
+      </div>
+
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+    </div> -->
+      <router-outlet></router-outlet>
+    
+  </mat-drawer-content>
+</mat-drawer-container>
+
+
+
+<!-- <mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <button (click)="toggleDrawer()" mat-icon-button aria-label="Menu">
+      <mat-icon>menu</mat-icon>
+    </button>
 
     <h1 class="toolbar-title">FinCentral</h1>
 
     <span class="fill-remaining-space"></span>
 
-    <!-- Display the selected company name -->
+    ****** Display the selected company name ***********
     <span *ngIf="selectedCompanyName" class="selected-company">
       | Company: {{ selectedCompanyName }}
     </span>
 
-    <!-- Company Switcher in Toolbar -->
+    ******<!-- Company Switcher in Toolbar ******
     <mat-form-field class="company-switcher" *ngIf="companies.length > 1" appearance="fill">
       <mat-label>Select Company</mat-label>
       <mat-select [(value)]="selectedCompanyId" (selectionChange)="switchCompany($event.value)">
@@ -23,7 +119,7 @@
       </mat-select>
     </mat-form-field>
 
-    <!-- User Account Menu -->
+    ******<!-- User Account Menu ******
     <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="User Menu">
       <mat-icon>account_circle</mat-icon>
     </button>
@@ -33,7 +129,7 @@
       <button mat-menu-item (click)="logout()">Logout</button>
     </mat-menu>
 
-    <!-- Theme Toggle -->
+    ******<!-- Theme Toggle ******
     <button mat-icon-button (click)="toggleTheme()" aria-label="Toggle Theme">
       <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
     </button>
@@ -60,7 +156,7 @@
             <mat-icon>analytics</mat-icon> Weight Bands
           </mat-list-item>
 
-          <!-- Nested Parcels Panel -->
+          ******<!-- Nested Parcels Panel ******
           <mat-expansion-panel>
             <mat-expansion-panel-header>
               <mat-panel-title>
@@ -180,7 +276,7 @@
               </mat-panel-title>
             </mat-expansion-panel-header>
             <mat-nav-list>
-              <!-- Submenu items for Submenu 1 -->
+              ******<!-- Submenu items for Submenu 1 ******
               <mat-list-item>
                 <button mat-button>Submenu Item 1</button>
               </mat-list-item>
@@ -203,7 +299,7 @@
           <mat-list-item routerLink="/dashboard/countries">Countries</mat-list-item>
           <mat-divider></mat-divider>
 
-          <!-- Select Company Dropdown -->
+          ****** <!-- Select Company Dropdown ******
           <mat-form-field>
             <mat-label><b>Select Company</b></mat-label>
             <mat-select [(value)]="selectedCompanyId" (selectionChange)="switchCompany($event.value)">
@@ -221,10 +317,68 @@
 
   <mat-drawer-content>
     <div class="content-area">
-      <router-outlet></router-outlet>
+
+      <h2>{{ selectedModule?.moduleName || 'Dashboard' }} - {{ selectedCompanyName }}</h2>
+
+      ****** <!-- Loading Spinner ******
+      <mat-spinner *ngIf="loading" diameter="50" style="margin: 20px auto;"></mat-spinner>
+
+      ****** <!-- Module Entities ******
+      <div class="entities-section" *ngIf="!loading">
+        <h3>Available Entities</h3>
+        <div class="entity-cards">
+          <div class="entity-card" *ngFor="let entity of selectedModule?.entities" (click)="navigateToEntity(entity.entityId)">
+            <h4>{{ entity.entityName }}</h4>
+            <p>Actions: {{ entity.allowedActions.join(', ') }}</p>
+          </div>
+        </div>
+      </div>
+
+      ****** <!-- Module-Specific Data Preview ******
+      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'inventory' && inventoryItems.length">
+        <h3>Inventory Preview</h3>
+        <table mat-table [dataSource]="inventoryItems">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let item">{{ item.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="quantity">
+            <th mat-header-cell *matHeaderCellDef>Quantity</th>
+            <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="price">
+            <th mat-header-cell *matHeaderCellDef>Price</th>
+            <td mat-cell *matCellDef="let item">{{ item.price }}</td>
+          </ng-container>
+          <ng-container matColumnDef="totalPrice">
+            <th mat-header-cell *matHeaderCellDef>Total Price</th>
+            <td mat-cell *matCellDef="let item">{{ item.totalPrice }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="inventoryColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: inventoryColumns;"></tr>
+        </table>
+        <mat-paginator [length]="totalItems" [pageSize]="pageSize" (page)="handlePageEvent($event)"></mat-paginator>
+      </div>
+
+      <div class="module-data" *ngIf="!loading && selectedModule?.moduleId === 'car-sales'">
+        <h3>Car Sales Preview</h3>
+        <p>Car Sales data will be displayed here once implemented.</p>
+      </div>
+
+      ****** <!-- Navigation ******
+      <div class="navigation-buttons" *ngIf="!loading">
+        <button mat-raised-button color="primary" (click)="router.navigate(['/modules'])">Back to Modules</button>
+        <button mat-raised-button color="accent" (click)="toggleTheme()">Toggle Theme</button>
+      </div>
+
+      ****** <!-- Error Message ******
+      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
     </div>
+
+      <router-outlet></router-outlet>
+    
   </mat-drawer-content>
-</mat-drawer-container>
+</mat-drawer-container> -->
 
 
 

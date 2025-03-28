@@ -11,9 +11,8 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class InactivityService {
 
-  //private inactivityTimeout = 5 * 60 * 1000; // 5 minutes
-  private inactivityTimeout = 1 * 60 * 1000; // 20 minutes 
-  private logoutTimeout = 2 * 60 * 1000; // 2 minutes
+  private inactivityTimeout = 5 * 60 * 1000; // 5 minutes
+  private logoutTimeout = 15 * 60 * 1000; // 15 minutes
   private isLockedSubject = new BehaviorSubject<boolean>(false);
   public isLocked$ = this.isLockedSubject.asObservable();
 

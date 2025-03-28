@@ -3,8 +3,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSidenav } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { AuthResponse } from 'src/app/auth/model/auth-response';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  AuthResponse,
+  ModulePermission,
+} from 'src/app/auth/model/auth-response';
 import { User } from 'src/app/auth/model/user';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { ConfirmationDialogComponent } from 'src/app/company/component/confirmation/confirmation-dialog/confirmation-dialog.component';
@@ -35,21 +38,20 @@ export class DashboardComponent implements OnInit {
   loading: boolean = false;
   pageSize: number = 10;
   totalItems: number = 0;
-  // Track open submenus
+  selectedModule!: ModulePermission | undefined;
   private openSubMenus: Set<string> = new Set<string>();
 
   constructor(
     private authService: AuthService,
     private companyService: CompanyService,
     private inventoryItemService: InventoryItemService,
-    private router: Router,
+    public router: Router,
     private dialog: MatDialog,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private route: ActivatedRoute,
+    private snackBar: MatSnackBar
   ) {}
 
-  /**
-   * Initializes the component with user data and company selection.
-   */
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
@@ -62,52 +64,57 @@ export class DashboardComponent implements OnInit {
       name,
     }));
 
-    this.companyService.getSelectedCompanyId().subscribe((companyId) => {
-      this.selectedCompanyId = companyId;
-      this.selectedCompanyName =
-        this.companies.find((c) => c.id === companyId)?.name ?? '';
-      if (companyId !== null) {
-        this.loadCompanySpecificData(companyId, 0, this.pageSize);
+    this.route.paramMap.subscribe(params => {
+      const moduleId = params.get('moduleId');
+      this.selectedModule = this.userData.modules.find(m => m.moduleId === moduleId);
+      if (!this.selectedModule) {
+        this.snackBar.open('Invalid module selected.', 'Close', { duration: 5000 });
+        this.router.navigate(['/modules']);
+        return;
       }
+
+      this.companyService.getSelectedCompanyId().subscribe((companyId) => {
+        this.selectedCompanyId = companyId;
+        this.selectedCompanyName = this.companies.find((c) => c.id === companyId)?.name ?? '';
+        if (companyId !== null) {
+          this.loadModuleData(companyId, 0, this.pageSize);
+        }
+      });
     });
 
     this.setThemeFromLocalStorage();
   }
 
-  /**
-   * Switches the active company with user confirmation.
-   * @param companyId The ID of the company to switch to.
-   */
-  // switchCompany(companyId: number): void {
-  //   const selectedCompany = this.companies.find(c => c.id === companyId);
-  //   if (!selectedCompany) return;
+  loadModuleData(companyId: number, page: number, size: number): void {
+    this.loading = true;
+    this.errorMessage = '';
+    if (this.selectedModule?.moduleId === 'inventory') {
+      this.inventoryItemService.getAllInventoryItems(page, size).subscribe({
+        next: (response: PaginatedResponse<InventoryItem>) => {
+          this.inventoryItems = response.items;
+          this.totalItems = response.totalItems;
+          this.loading = false;
+          this.cdRef.detectChanges();
+        },
+        error: (error) => {
+          this.errorMessage = `Error loading inventory data: ${error.message || 'Unknown error'}`;
+          this.loading = false;
+          this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
+        },
+      });
+    } else if (this.selectedModule?.moduleId === 'car-sales') {
+      this.loading = false;
+      this.snackBar.open('Car Sales data not yet implemented.', 'Close', { duration: 5000 });
+    }
+  }
 
-  //   const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
-  //     width: '400px',
-  //     data: { companyName: selectedCompany.name }
-  //   });
+  handlePageEvent(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    if (this.selectedCompanyId !== null) {
+      this.loadModuleData(this.selectedCompanyId, event.pageIndex, this.pageSize);
+    }
+  }
 
-  //   dialogRef.afterClosed().subscribe(result => {
-  //     if (result === 'confirm') {
-  //       this.loading = true; // Show spinner
-  //       this.companyService.switchCompany(companyId).subscribe({
-  //         next: () => {
-  //           this.loading = false;
-  //           this.cdRef.detectChanges();
-  //         },
-  //         error: (error) => {
-  //           this.loading = false;
-  //           this.errorMessage = `Failed to switch company: ${error.message || 'Unknown error'}`;
-  //         }
-  //       });
-  //     }
-  //   });
-  // }
-
-  /**
-   * Switches the active company with user confirmation by reloading the page.
-   * @param companyId The ID of the company to switch to.
-   */
   switchCompany(companyId: number): void {
     const selectedCompany = this.companies.find((c) => c.id === companyId);
     if (!selectedCompany) return;
@@ -119,75 +126,38 @@ export class DashboardComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'confirm') {
+        this.loading = true;
         this.companyService.switchCompany(companyId).subscribe({
           next: () => {
-            window.location.reload(); // Page reload here
+            this.loading = false;
+            this.router.navigate(['/modules']);
           },
           error: (error) => {
-            this.errorMessage = `Failed to switch company: ${
-              error.message || 'Unknown error'
-            }`;
+            this.loading = false;
+            this.errorMessage = `Failed to switch company: ${error.message || 'Unknown error'}`;
+            this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
           },
         });
       }
     });
   }
 
-  /**
-   * Loads inventory data for the selected company.
-   * @param companyId The company ID.
-   * @param page The page index.
-   * @param size The page size.
-   */
-  loadCompanySpecificData(companyId: number, page: number, size: number): void {
-    this.loading = true;
-    this.errorMessage = '';
-    this.inventoryItemService.getAllInventoryItems(page, size).subscribe({
-      next: (response: PaginatedResponse<InventoryItem>) => {
-        this.inventoryItems = response.items;
-        this.totalItems = response.totalItems;
-        this.loading = false;
-        this.cdRef.detectChanges();
-      },
-      error: (error) => {
-        this.errorMessage = `Error loading inventory data: ${
-          error.message || 'Unknown error'
-        }`;
-        this.loading = false;
-      },
-    });
+  navigateToEntity(entityId: string): void {
+    const basePath = `/dashboard/${this.selectedModule?.moduleId}`;
+    const routeMap: { [key: string]: string } = {
+      'inventory-items': 'inventory-item',
+      'item-categories': 'item-category'
+      // Add more mappings as needed, e.g., 'item-types': 'item-type'
+    };
+    const routePath = routeMap[entityId] || entityId; // Fallback to entityId if no mapping
+    console.log(`Navigating to: ${basePath}/${routePath}`, { entityId, routePath });
+    this.router.navigate([`${basePath}/${routePath}`]);
   }
 
-  /**
-   * Handles pagination events.
-   * @param event The page event.
-   */
-  handlePageEvent(event: PageEvent): void {
-    this.pageSize = event.pageSize;
-    if (this.selectedCompanyId !== null) {
-      this.loadCompanySpecificData(
-        this.selectedCompanyId,
-        event.pageIndex,
-        this.pageSize
-      );
-    }
-  }
-
-  /**
-   * Applies the saved theme from localStorage.
-   */
-  private setThemeFromLocalStorage(): void {
-    this.isDarkMode = localStorage.getItem('theme') === 'dark';
-    document.body.classList.toggle('dark-mode', this.isDarkMode);
-    document.body.classList.toggle('light-mode', !this.isDarkMode);
-  }
-
-  /** Toggles the sidenav visibility */
   toggleDrawer(): void {
     this.drawer.toggle();
   }
 
-  /** Toggles between dark and light themes */
   toggleTheme(): void {
     this.isDarkMode = !this.isDarkMode;
     localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
@@ -195,33 +165,126 @@ export class DashboardComponent implements OnInit {
     document.body.classList.toggle('light-mode', !this.isDarkMode);
   }
 
-  /** Logs out the user */
   logout(): void {
     this.authService.logout();
   }
 
-  /**
-   * Toggles the visibility of a submenu.
-   * @param submenuId The identifier of the submenu to toggle.
-   */
   toggleSubMenu(submenuId: string): void {
     if (this.openSubMenus.has(submenuId)) {
       this.openSubMenus.delete(submenuId);
     } else {
       this.openSubMenus.add(submenuId);
     }
-    this.cdRef.detectChanges(); // Ensure UI updates
+    this.cdRef.detectChanges();
   }
 
-  /**
-   * Checks if a submenu is open.
-   * @param submenuId The identifier of the submenu to check.
-   * @returns True if the submenu is open, false otherwise.
-   */
   isSubMenuOpen(submenuId: string): boolean {
     return this.openSubMenus.has(submenuId);
   }
+
+  private setThemeFromLocalStorage(): void {
+    this.isDarkMode = localStorage.getItem('theme') === 'dark';
+    document.body.classList.toggle('dark-mode', this.isDarkMode);
+    document.body.classList.toggle('light-mode', !this.isDarkMode);
+  }
 }
+
+
+//   this.userData = this.authService.getUserData();
+  //   this.companies = this.userData.companies.map((name, index) => ({
+  //     id: this.userData.companyIds?.[index] ?? index + 1,
+  //     name,
+  //   }));
+
+  //   this.companyService.getSelectedCompanyId().subscribe((companyId) => {
+  //     this.selectedCompanyId = companyId;
+  //     this.selectedCompanyName =
+  //       this.companies.find((c) => c.id === companyId)?.name ?? '';
+  //     if (companyId !== null) {
+  //       this.loadCompanySpecificData(companyId, 0, this.pageSize);
+  //     }
+  //   });
+
+  //   this.setThemeFromLocalStorage();
+  // }
+
+  // /**
+  //  * Switches the active company with user confirmation by reloading the page.
+  //  * @param companyId The ID of the company to switch to.
+  //  */
+  // switchCompany(companyId: number): void {
+  //   const selectedCompany = this.companies.find((c) => c.id === companyId);
+  //   if (!selectedCompany) return;
+
+  //   const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+  //     width: '400px',
+  //     data: { companyName: selectedCompany.name },
+  //   });
+
+  //   dialogRef.afterClosed().subscribe((result) => {
+  //     if (result === 'confirm') {
+  //       this.companyService.switchCompany(companyId).subscribe({
+  //         next: () => {
+  //           window.location.reload(); // Page reload here
+  //         },
+  //         error: (error) => {
+  //           this.errorMessage = `Failed to switch company: ${
+  //             error.message || 'Unknown error'
+  //           }`;
+  //         },
+  //       });
+  //     }
+  //   });
+  // }
+
+  // /**
+  //  * Loads inventory data for the selected company.
+  //  * @param companyId The company ID.
+  //  * @param page The page index.
+  //  * @param size The page size.
+  //  */
+  // loadCompanySpecificData(companyId: number, page: number, size: number): void {
+  //   this.loading = true;
+  //   this.errorMessage = '';
+  //   this.inventoryItemService.getAllInventoryItems(page, size).subscribe({
+  //     next: (response: PaginatedResponse<InventoryItem>) => {
+  //       this.inventoryItems = response.items;
+  //       this.totalItems = response.totalItems;
+  //       this.loading = false;
+  //       this.cdRef.detectChanges();
+  //     },
+  //     error: (error) => {
+  //       this.errorMessage = `Error loading inventory data: ${
+  //         error.message || 'Unknown error'
+  //       }`;
+  //       this.loading = false;
+  //     },
+  //   });
+  // }
+
+  /**
+   * Handles pagination events.
+   * @param event The page event.
+   */
+  // handlePageEvent(event: PageEvent): void {
+  //   this.pageSize = event.pageSize;
+  //   if (this.selectedCompanyId !== null) {
+  //     this.loadCompanySpecificData(
+  //       this.selectedCompanyId,
+  //       event.pageIndex,
+  //       this.pageSize
+  //     );
+  //   }
+  // }
+
+
+
+
+
+
+
+
+
 
 //   companies: Company[] = [];
 //   selectedCompanyId: number | null = null;

@@ -48,7 +48,8 @@ export class AuthService {
           this.storeUserData(response);
           this.companySwitchedSubject.next(response.companyIds?.[0] || null);
           this.lockEventService.resetLock(); // Reset lock state on successful login
-          this.router.navigate(['/dashboard']); // Redirect to dashboard
+          //this.router.navigate(['/dashboard']); // Redirect to dashboard
+          this.router.navigate(['/modules']); // Redirect to module component
         }),
         catchError(this.handleError('Login failed', 'Invalid credentials', 401))
       );
@@ -117,7 +118,8 @@ export class AuthService {
             companies: [],
             defaultCompany: '',
             companyIds: [],
-            username: '' // Add username to fallback
+            username: '',
+            modules: [],
           });
         })
       );

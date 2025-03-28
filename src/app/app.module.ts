@@ -45,6 +45,9 @@ import { ItemcategoryformComponent } from './inventory/itemcategory/component/ad
 import { CountrylistComponent } from './country/country/component/list/countrylist/countrylist.component';
 import { CountryformComponent } from './country/country/component/form/countryform/countryform.component';
 import { LockScreenComponent } from './auth/inactivity/lock-screen/lock-screen.component';
+import { ModuleSelectionComponent } from './home/module/module-selection/module-selection.component';
+import { SidebarComponent } from './home/sidebar/sidebar.component';
+import { PageNotFoundComponent } from './404/page-not-found/page-not-found.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +65,10 @@ import { LockScreenComponent } from './auth/inactivity/lock-screen/lock-screen.c
     ItemcategoryformComponent,
     CountrylistComponent,
     CountryformComponent,
-    LockScreenComponent
+    LockScreenComponent,
+    ModuleSelectionComponent,
+    SidebarComponent,
+    PageNotFoundComponent
   ],
   imports: [
     BrowserModule,

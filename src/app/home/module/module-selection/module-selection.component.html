@@ -1,0 +1,12 @@
+<div class="module-selection-container" [class.dark-mode]="isDarkMode">
+    <h2>Welcome, {{ userData.username || 'User' }}</h2>
+    <p *ngIf="modules.length > 0">Select a module to continue:</p>
+    <p *ngIf="modules.length === 0" class="error">No modules available. Contact support.</p>
+    <div class="module-cards">
+      <div class="module-card" *ngFor="let module of modules" (click)="selectModule(module.moduleId)">
+        <h3>{{ module.moduleName }}</h3>
+        <p>Explore {{ module.moduleName }}</p>
+      </div>
+    </div>
+    <button mat-button color="warn" (click)="logout()">Logout</button>
+  </div>

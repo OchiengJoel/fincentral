@@ -1,0 +1,14 @@
+<mat-nav-list class="sidebar-menu" [class.dark-mode]="isDarkMode">
+    <mat-list-item (click)="toggleSidebar()">
+      <mat-icon matListIcon>menu</mat-icon>
+      <span matLine>{{ selectedModule?.moduleName || 'Menu' }}</span>
+    </mat-list-item>
+    <mat-list-item *ngFor="let entity of orderedEntities" (click)="navigateToEntity(entity.entityId)">
+      <mat-icon matListIcon>{{ getEntityIcon(entity.entityId) }}</mat-icon>
+      <span matLine>{{ entity.entityName }}</span>
+    </mat-list-item>
+    <mat-list-item (click)="backToModules()">
+      <mat-icon matListIcon>arrow_back</mat-icon>
+      <span matLine>Back to Modules</span>
+    </mat-list-item>
+  </mat-nav-list>

@@ -11,6 +11,8 @@ import { ItemcategorylistComponent } from './inventory/itemcategory/component/li
 import { CountrylistComponent } from './country/country/component/list/countrylist/countrylist.component';
 import { CountryformComponent } from './country/country/component/form/countryform/countryform.component';
 import { LockScreenComponent } from './auth/inactivity/lock-screen/lock-screen.component';
+import { ModuleSelectionComponent } from './home/module/module-selection/module-selection.component';
+import { PageNotFoundComponent } from './404/page-not-found/page-not-found.component';
 
 const routes: Routes = [
 
@@ -22,57 +24,33 @@ const routes: Routes = [
     path:'login', component:LoginComponent
   },
 
-  // { path: 'lock', component: LockScreenComponent },
+  { path: '404', component: PageNotFoundComponent },
+
+  { 
+    path: 'modules', component: ModuleSelectionComponent, canActivate: [AuthGuard] 
+  },
 
   {
-    path:'dashboard', component:DashboardComponent, canActivate:[AuthGuard], children: [
-
-      {
-        path: 'companies', component: CompanylistComponent
-      },
-
-      {
-        path: 'companies/add', component: CompanyaddeditComponent // Add this route
-      },    
-      
-      {
-        path: 'companies/edit/:id', component: CompanyaddeditComponent // Make sure edit route has a parameter for company ID
-      },
-
-      {
-        path: 'countries/add', component: CountryformComponent
-      },
-
-      {
-        path: 'countries/edit/:id', component: CountryformComponent
-      },
-
-      {
-        path: 'profile', component: ProfileComponent
-      },
-
-      {
-        path: 'inventory-item', component: InventoryListComponent
-      },
-
-      {
-        path: 'item-category', component: ItemcategorylistComponent
-      },
-
-      {
-        path: 'countries', component: CountrylistComponent
-      }
-      
+    path: 'dashboard/:moduleId', component:DashboardComponent, canActivate:[AuthGuard],
+    children: [
+      { path: 'companies', component: CompanylistComponent },
+      { path: 'companies/add', component: CompanyaddeditComponent },
+      { path: 'companies/edit/:id', component: CompanyaddeditComponent },
+      { path: 'countries/add', component: CountryformComponent },
+      { path: 'countries/edit/:id', component: CountryformComponent },
+      { path: 'profile', component: ProfileComponent },
+      { path: 'inventory-item', component: InventoryListComponent },
+      { path: 'item-category', component: ItemcategorylistComponent },
+      { path: 'countries', component: CountrylistComponent },
+      // Add car-sales routes when implemented
+      // { path: 'car-catalogue', component: CarCatalogueComponent },
+      // { path: 'car-sales', component: CarSalesComponent },
     ]
   },
 
   { 
-    path: '**', redirectTo: '/login' // Wildcard route for any undefined routes
+    path: '**', redirectTo: '/404' // Wildcard route for any undefined routes
   }
-
-  // { 
-  //   path: '**', redirectTo: '/login' 
-  // },  // Wildcard route for any undefined routes
 ];
 
 @NgModule({

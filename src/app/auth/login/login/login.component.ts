@@ -40,7 +40,8 @@ export class LoginComponent {
     this.authService.login(username, password).subscribe({
       next: (response) => {
         this.authService.storeUserData(response);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/modules']);
+        //this.router.navigate(['/dashboard']);
         this.snackBar.open('Login successful!', 'Close', { duration: 3000 });
         this.loading = false;
       },

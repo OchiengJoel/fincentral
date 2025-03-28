@@ -1,0 +1,17 @@
+.sidebar-menu {
+    padding-top: 10px;
+    background: #ffffff;
+  }
+  mat-list-item {
+    cursor: pointer;
+  }
+  mat-list-item:hover {
+    background: #f5f5f5;
+  }
+  .dark-mode {
+    background: #424242;
+    color: white;
+  }
+  .dark-mode mat-list-item:hover {
+    background: #616161;
+  }
