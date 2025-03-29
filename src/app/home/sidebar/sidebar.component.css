@@ -1,17 +1,105 @@
+/* Base Sidebar Styles */
 .sidebar-menu {
-    padding-top: 10px;
-    background: #ffffff;
-  }
-  mat-list-item {
-    cursor: pointer;
-  }
-  mat-list-item:hover {
-    background: #f5f5f5;
-  }
-  .dark-mode {
-    background: #424242;
-    color: white;
-  }
-  .dark-mode mat-list-item:hover {
-    background: #616161;
-  }
+  padding: 0;
+  background-color: #f5f5f5;
+  font-family: 'Roboto', sans-serif;
+  height: 100%; /* Fill drawer height */
+  transition: background-color 0.3s ease;
+}
+
+/* Dark Mode */
+.dark-mode.sidebar-menu {
+  background-color: #2a2a2a;
+}
+
+/* List Items */
+mat-nav-list {
+  padding: 0;
+}
+
+.mat-list-item {
+  padding: 0 16px;
+  height: 56px; /* Standard Material height */
+  display: flex;
+  align-items: center;
+  color: #333;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark-mode .mat-list-item {
+  color: #e0e0e0;
+}
+
+/* Hover and Active States */
+.mat-list-item:hover {
+  background-color: #e0e0e0;
+  cursor: pointer;
+}
+
+.dark-mode .mat-list-item:hover {
+  background-color: #424242;
+}
+
+/* Active State (Optional: Highlight current entity) */
+.mat-list-item.active {
+  background-color: #dcedc8; /* Light green for active */
+  color: #333;
+}
+
+.dark-mode .mat-list-item.active {
+  background-color: #558b2f; /* Darker green for dark mode */
+}
+
+/* Icons */
+mat-icon.mat-list-icon {
+  margin-right: 16px;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  color: #666;
+}
+
+.dark-mode mat-icon.mat-list-icon {
+  color: #bbb;
+}
+
+/* Text */
+span[matLine] {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Header Item (Module Name) */
+.mat-list-item:first-child {
+  background-color: #e8eaf6; /* Subtle highlight */
+  font-weight: 500;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.dark-mode .mat-list-item:first-child {
+  background-color: #37474f;
+  border-bottom: 1px solid #444;
+}
+
+/* Back to Modules (Footer-like) */
+.mat-list-item:last-child {
+  margin-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.dark-mode .mat-list-item:last-child {
+  border-top: 1px solid #444;
+}
+
+/* Drawer Container (from dashboard.component.css) */
+:host ::ng-deep .sidebar {
+  width: 250px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  background-color: inherit; /* Inherit from .sidebar-menu */
+}
+
+.dark-mode :host ::ng-deep .sidebar {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+}

@@ -35,14 +35,13 @@
 
 /* Sidebar Styles */
 .sidebar {
-  background-color: #f5f5f5;
-  padding-top: 20px;
-  font-family: 'Roboto', sans-serif;
-  width: 250px; /* Fixed width for consistency */
+  width: 250px;
+  padding-top: 0; /* Remove padding since .sidebar-menu handles it */
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 .dark-mode .sidebar {
-  background-color: #333;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Content Area Styling */
